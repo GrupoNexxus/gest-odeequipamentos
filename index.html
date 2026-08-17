@@ -1,0 +1,2133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestão de Equipamentos — Grupo Nexxus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+:root{
+  --bg:#f5f4f0;--card:#ffffff;--border:#e0dfd8;
+  --purple:#533AB7;--purple-light:#eeeafb;--purple-dark:#402c94;
+  --green:#1D9E75;--green-light:#e3f6ef;
+  --red:#E24B4A;--red-light:#fbeaea;
+  --amber:#BA7517;--amber-light:#fbf1e2;
+  --gray-900:#232323;--gray-700:#4a4944;--gray-600:#6b6a66;--gray-400:#9c9a94;--gray-100:#efeee9;
+  --radius:10px;--radius-lg:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--gray-900);font-size:14px}
+h1,h2,h3,.brand-font{font-family:'Sora',sans-serif}
+
+/* ── TELA DE SELEÇÃO DE EMPRESA ─────────────────────────── */
+.empresa-gate{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:28px;padding:24px}
+.empresa-gate h1{font-size:22px;font-weight:700;color:var(--gray-900)}
+.empresa-gate p{color:var(--gray-600);font-size:13px;margin-top:-14px}
+.empresa-cards{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+.empresa-card{width:180px;background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:24px 18px;text-align:center;cursor:pointer;transition:all .15s}
+.empresa-card:hover{border-color:var(--purple);box-shadow:0 4px 14px rgba(83,58,183,0.12);transform:translateY(-2px)}
+.empresa-card i{font-size:30px;color:var(--purple);margin-bottom:10px;display:block}
+.empresa-card span{font-weight:700;font-family:'Sora',sans-serif;font-size:15px}
+
+/* ── APP ─────────────────────────────────────────────────── */
+html, body{height:100%;width:100%}
+#app-root{width:100%}
+.app{display:flex;min-height:100vh;width:100%}
+.sidebar{width:230px;background:#1b1a24;flex-shrink:0;display:flex;flex-direction:column}
+.sidebar-logo{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.sidebar-logo h1{font-size:15px;font-weight:700;color:#fff}
+.sidebar-logo p{font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px}
+.empresa-chip{display:flex;align-items:center;gap:8px;margin:14px 18px 4px;padding:8px 10px;background:rgba(83,58,183,0.25);border-radius:var(--radius);font-size:12px;font-weight:600;color:#fff}
+.empresa-chip i{font-size:15px;color:#c9bdf6}
+.trocar-empresa-btn{margin:0 18px 10px;font-size:11px;color:rgba(255,255,255,0.45);background:none;border:none;cursor:pointer;text-align:left;padding:0}
+.trocar-empresa-btn:hover{color:#fff}
+.sidebar-nav{padding:10px 8px;flex:1}
+.nav-section{font-size:10px;font-weight:700;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:.06em;padding:14px 10px 4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--radius);cursor:pointer;color:rgba(255,255,255,0.55);font-size:13px;font-weight:500;transition:all .15s;margin-bottom:2px}
+.nav-item:hover{background:rgba(83,58,183,0.18);color:#fff}
+.nav-item.active{background:var(--purple);color:#fff}
+.nav-item.disabled{cursor:default;opacity:.45}
+.nav-item.disabled:hover{background:none;color:rgba(255,255,255,0.55)}
+.nav-item i{font-size:17px}
+.em-breve{font-size:9px;background:rgba(255,255,255,0.12);padding:1px 6px;border-radius:20px;margin-left:auto}
+
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:0 24px;height:58px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.topbar-title{font-size:16px;font-weight:700;font-family:'Sora',sans-serif}
+.topbar-actions{display:flex;gap:8px;align-items:center}
+.content{flex:1;padding:24px;overflow-y:auto}
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--radius);border:1px solid var(--border);background:var(--card);color:var(--gray-700);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn:hover{background:var(--gray-100)}
+.btn-primary{background:var(--purple);border-color:var(--purple);color:#fff}
+.btn-primary:hover{background:var(--purple-dark);border-color:var(--purple-dark)}
+.btn-ghost{background:transparent;border-color:transparent}
+.btn-ghost:hover{background:var(--gray-100)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn i{font-size:15px}
+.icon-btn{width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--radius);border:1px solid var(--border);background:var(--card);cursor:pointer;color:var(--gray-600)}
+.icon-btn:hover{background:var(--gray-100);color:var(--gray-900)}
+.icon-btn.danger:hover{background:var(--red-light);color:var(--red);border-color:var(--red)}
+.icon-btn.purple:hover{background:var(--purple-light);color:var(--purple);border-color:var(--purple)}
+
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px}
+.stat-label{font-size:12px;color:var(--gray-600);margin-bottom:6px}
+.stat-value{font-size:26px;font-weight:700;font-family:'Sora',sans-serif;line-height:1}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);width:100%}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11px;font-weight:700;color:var(--gray-600);text-transform:uppercase;letter-spacing:.04em;padding:11px 14px;background:var(--gray-100);border-bottom:1px solid var(--border)}
+td{padding:12px 14px;border-bottom:1px solid var(--gray-100);font-size:13px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fbfaf8}
+.actions-cell{display:flex;gap:6px}
+
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.badge-green{background:var(--green-light);color:var(--green)}
+.badge-purple{background:var(--purple-light);color:var(--purple)}
+.badge-amber{background:var(--amber-light);color:var(--amber)}
+.badge-gray{background:var(--gray-100);color:var(--gray-600)}
+
+.filters{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.search-box{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:0 12px;flex:1;min-width:180px}
+.search-box i{color:var(--gray-400);font-size:16px}
+.search-box input{border:none;outline:none;font-size:13px;width:100%;padding:9px 0;background:transparent}
+select{padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;background:var(--card);outline:none;cursor:pointer}
+
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(20,18,30,0.5);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);border-radius:var(--radius-lg);width:480px;max-width:95vw;max-height:90vh;overflow-y:auto}
+.modal-header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-header h3{font-size:15px;font-weight:700;font-family:'Sora',sans-serif}
+.modal-body{padding:20px}
+.modal-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+.close-btn{background:none;border:none;cursor:pointer;color:var(--gray-400);font-size:20px}
+.close-btn:hover{color:var(--gray-900)}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:12px;font-weight:700;color:var(--gray-600);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;color:var(--gray-900);outline:none;background:var(--card)}
+.form-group input:focus,.form-group select:focus{border-color:var(--purple)}
+.form-group textarea{resize:vertical;min-height:60px}
+.form-hint{font-size:11px;color:var(--gray-400);margin-top:5px}
+.empresa-toggle{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;margin:0 8px 8px 0;border-radius:20px;border:1.5px solid var(--border);background:var(--card);color:var(--gray-600);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+.empresa-toggle i{font-size:15px;opacity:0}
+.empresa-toggle:hover{border-color:var(--purple)}
+.empresa-toggle.selected{background:var(--purple-light);border-color:var(--purple);color:var(--purple)}
+.empresa-toggle.selected i{opacity:1}
+.transfer-info{background:var(--purple-light);border-radius:var(--radius);padding:12px 14px;font-size:13px;margin-bottom:16px}
+.transfer-info b{font-family:'Sora',sans-serif}
+
+.loading{text-align:center;padding:40px;color:var(--gray-400)}
+.loading i{font-size:26px;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--gray-900);color:#fff;padding:12px 18px;border-radius:var(--radius);font-size:13px;font-weight:600;z-index:999;display:none;align-items:center;gap:8px}
+.toast.show{display:flex}
+.toast.success{background:var(--green)}
+.toast.error{background:var(--red)}
+.empty-state{text-align:center;padding:48px 20px;color:var(--gray-400)}
+.empty-state i{font-size:38px;margin-bottom:10px;display:block}
+
+/* ── VISÃO POR SETOR (cards de colaborador) ────────────────── */
+.colab-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.colab-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px}
+.colab-card-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.colab-avatar{width:36px;height:36px;border-radius:50%;background:var(--purple-light);color:var(--purple);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0}
+.colab-name{font-weight:700;font-family:'Sora',sans-serif;font-size:14px}
+.colab-setor{font-size:11px;color:var(--gray-600)}
+.colab-equip-list{display:flex;flex-direction:column;gap:6px}
+.colab-equip-item{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 10px;background:var(--gray-100);border-radius:8px;font-size:12px}
+.colab-equip-item .eq-nome{display:flex;align-items:center;gap:6px;color:var(--gray-700);font-weight:600}
+.colab-equip-item .eq-nome i{color:var(--gray-400);font-size:14px}
+.colab-equip-empty{font-size:12px;color:var(--gray-400);padding:6px 0}
+.colab-count{margin-left:auto;font-size:11px;color:var(--gray-400);font-weight:600}
+
+/* ── MOVIMENTAR ─────────────────────────────────────────────── */
+.mov-wrap{max-width:560px;margin:0 auto}
+.mov-header{display:flex;align-items:center;gap:8px;padding:18px 20px;border-bottom:1px solid var(--border)}
+.mov-header i{color:var(--purple);font-size:19px}
+.mov-header h2{font-size:15px;font-weight:700;font-family:'Sora',sans-serif}
+.mov-body{padding:20px}
+.form-row{display:flex;gap:12px}
+.form-row .form-group{flex:1;min-width:0}
+.mov-eq-search-wrap{position:relative}
+.mov-eq-results{display:none;position:absolute;left:0;right:0;top:100%;margin-top:4px;z-index:20;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);max-height:240px;overflow-y:auto;box-shadow:0 8px 20px rgba(20,18,30,0.12)}
+.mov-eq-results.open{display:block}
+.mov-eq-result-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px}
+.mov-eq-result-item:last-child{border-bottom:none}
+.mov-eq-result-item:hover{background:var(--gray-100)}
+.mov-eq-current{font-size:12px;color:var(--gray-600);background:var(--gray-100);border-radius:var(--radius);padding:8px 12px;margin-top:6px;display:flex;align-items:center;gap:6px}
+
+/* ── CAMPO DE ORIGEM/DESTINO: select(s) repetíveis + local ──── */
+.dst-rows{display:flex;flex-direction:column;gap:8px}
+.dst-row{display:flex;gap:6px;align-items:center}
+.dst-row select{flex:1}
+.dst-row .row-remove{background:none;border:none;color:var(--gray-400);cursor:pointer;font-size:17px;line-height:1;padding:4px;flex-shrink:0}
+.dst-row .row-remove:hover{color:var(--red)}
+.dst-add-link{margin-top:8px;background:none;border:none;color:var(--purple);font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:0}
+.dst-add-link:hover{text-decoration:underline}
+.dst-add-link i{font-size:14px}
+
+/* ── FILTRO DE EQUIPAMENTO / LINHA DO TEMPO (HISTÓRICO) ────── */
+.hist-eq-filter{position:relative;min-width:240px}
+.hist-eq-chip{display:flex;align-items:center;gap:8px;background:var(--purple-light);color:var(--purple);border-radius:var(--radius);padding:8px 12px;font-size:13px;font-weight:600}
+.hist-eq-chip button{background:none;border:none;cursor:pointer;color:var(--purple);font-size:15px;line-height:1;margin-left:auto}
+.timeline{position:relative;padding:8px 0 8px 28px}
+.timeline::before{content:'';position:absolute;left:9px;top:6px;bottom:6px;width:2px;background:var(--border)}
+.timeline-item{position:relative;padding-bottom:22px}
+.timeline-item:last-child{padding-bottom:0}
+.timeline-dot{position:absolute;left:-28px;top:2px;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--card);border:2px solid var(--border);font-size:11px}
+.timeline-dot.badge-green{border-color:var(--green);color:var(--green)}
+.timeline-dot.badge-purple{border-color:var(--purple);color:var(--purple)}
+.timeline-dot.badge-amber{border-color:var(--amber);color:var(--amber)}
+.timeline-dot.badge-gray{border-color:var(--gray-400);color:var(--gray-600)}
+.timeline-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px}
+.timeline-date{font-size:11px;color:var(--gray-400);margin-bottom:4px}
+.timeline-title{font-weight:700;font-family:'Sora',sans-serif;font-size:13px;margin-bottom:2px}
+.timeline-detail{font-size:12px;color:var(--gray-600)}
+.timeline-motivo{font-size:12px;color:var(--gray-700);margin-top:6px;padding-top:6px;border-top:1px dashed var(--border)}
+.mov-eq-current i{color:var(--purple)}
+</style>
+</head>
+<body>
+
+<div id="gate" class="empresa-gate" style="display:none">
+  <div>
+    <h1 style="text-align:center">Gestão de Equipamentos</h1>
+    <p style="text-align:center;margin-top:6px">Selecione a empresa para continuar</p>
+  </div>
+  <div class="empresa-cards" id="empresa-cards"></div>
+</div>
+
+<div id="app-root" style="display:none"></div>
+
+<div class="modal-overlay" id="modal-equipamento">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-equip-title">Novo equipamento</h3>
+      <button class="close-btn" onclick="closeModal('modal-equipamento')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="equip-id">
+      <div class="form-group">
+        <label>Tipo</label>
+        <input type="text" id="equip-tipo" list="tipos-list" placeholder="Ex: Notebook, Cadeira, Frigobar...">
+        <datalist id="tipos-list">
+      <option value="Adaptador de HDMI"></option>
+      <option value="Adaptador de rede"></option>
+      <option value="Adaptador HDMi para VGA"></option>
+      <option value="Ar condicionado"></option>
+      <option value="Armário"></option>
+      <option value="Artigo de decoração"></option>
+      <option value="Banco"></option>
+      <option value="Banqueta"></option>
+      <option value="Base dos microfones"></option>
+      <option value="Baterias"></option>
+      <option value="Baterias estacionárias"></option>
+      <option value="Bebedouro"></option>
+      <option value="Cabine"></option>
+      <option value="Cabo conversor VGA para HDMI"></option>
+      <option value="Cabo hdmi"></option>
+      <option value="Cadeira"></option>
+      <option value="Cafeteira"></option>
+      <option value="Caixa de energia"></option>
+      <option value="Caixa de som"></option>
+      <option value="Carregador"></option>
+      <option value="Carregador veicular"></option>
+      <option value="Celular"></option>
+      <option value="Climatizador"></option>
+      <option value="CPU"></option>
+      <option value="CPU seCPU"></option>
+      <option value="Câmera"></option>
+      <option value="Defletor"></option>
+      <option value="Estabilizador"></option>
+      <option value="Extensão"></option>
+      <option value="Extintor"></option>
+      <option value="Filtro de linha"></option>
+      <option value="Fone de ouvido P2"></option>
+      <option value="Frigobar"></option>
+      <option value="Gaveteiro"></option>
+      <option value="Geladeira"></option>
+      <option value="HD externo"></option>
+      <option value="Headphone"></option>
+      <option value="HUB"></option>
+      <option value="Impressora"></option>
+      <option value="Janela"></option>
+      <option value="Jarro"></option>
+      <option value="Lixeira"></option>
+      <option value="Lixeiro"></option>
+      <option value="Lousa de vidro"></option>
+      <option value="Macbook"></option>
+      <option value="Mesa"></option>
+      <option value="Mesa de som"></option>
+      <option value="Mesa Portátil"></option>
+      <option value="Microfone"></option>
+      <option value="Microfone de lapela"></option>
+      <option value="Monitor"></option>
+      <option value="Monitor câmera"></option>
+      <option value="Mouse  sem fio"></option>
+      <option value="Mouse Bluetooth"></option>
+      <option value="Mouse com fio"></option>
+      <option value="Mouse sem fio"></option>
+      <option value="Nobreak"></option>
+      <option value="Notebook"></option>
+      <option value="Organizador de acrílico"></option>
+      <option value="Passador de slide"></option>
+      <option value="Peça de mesa"></option>
+      <option value="Poltrona"></option>
+      <option value="Porta banner tripé"></option>
+      <option value="Projetor"></option>
+      <option value="Quabro branco"></option>
+      <option value="Quadro branco"></option>
+      <option value="Quadro decoração"></option>
+      <option value="Ring Light"></option>
+      <option value="Roll"></option>
+      <option value="Roll Up"></option>
+      <option value="Roteador microtik"></option>
+      <option value="Sofá"></option>
+      <option value="Subwolfer"></option>
+      <option value="Suporte de celular para carro"></option>
+      <option value="Suporte do projetor"></option>
+      <option value="Suporte para caixa de som"></option>
+      <option value="Suporte para celular"></option>
+      <option value="Suporte para CPU"></option>
+      <option value="Suporte para monitor"></option>
+      <option value="Suporte para notebook"></option>
+      <option value="Suporte para os pés"></option>
+      <option value="Suporte para TV"></option>
+      <option value="Switch"></option>
+      <option value="Tablet"></option>
+      <option value="Tampa de vidro"></option>
+      <option value="Teclado com fio"></option>
+      <option value="Teclado sem fio"></option>
+      <option value="Tela de projeção"></option>
+      <option value="Televisão"></option>
+      <option value="TV"></option>
+      <option value="Vaso"></option>
+        </datalist>
+        <div class="form-hint">Digite livremente — a lista só sugere os tipos já usados</div>
+      </div>
+      <div class="form-group">
+        <label>Patrimônio</label>
+        <input type="text" id="equip-patrimonio" placeholder="Ex: NB-0231">
+      </div>
+      <div class="form-group">
+        <label>Descrição</label>
+        <textarea id="equip-descricao" placeholder="Detalhes opcionais"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Observações</label>
+        <textarea id="equip-observacoes" placeholder="Garantia, histórico de manutenção, empréstimos etc."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="equip-status">
+          <option>Disponível</option>
+          <option>Alocado</option>
+          <option>Emprestado</option>
+          <option>Manutenção</option>
+          <option>Em avaliação</option>
+          <option>Descartado</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Com quem / Onde está</label>
+        <div id="equip-dst-rows" class="dst-rows"></div>
+        <button type="button" class="dst-add-link" onclick="addEquipDestinoRow()"><i class="ti ti-plus"></i> Incluir outro</button>
+        <div class="form-hint">Selecione uma pessoa ou local. Deixe em branco para "Disponível".</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-equipamento')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveEquipamento()"><i class="ti ti-check"></i> Salvar</button>
+    </div>
+  </div>
+</div>
+
+
+
+<div class="modal-overlay" id="modal-colaborador">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-colab-title">Novo colaborador</h3>
+      <button class="close-btn" onclick="closeModal('modal-colaborador')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="colab-id">
+      <div class="form-group">
+        <label>Nome</label>
+        <input type="text" id="colab-nome" placeholder="Nome completo">
+      </div>
+      <div class="form-group">
+        <label>Cargo (opcional)</label>
+        <input type="text" id="colab-cargo" placeholder="Ex: Analista de Suporte">
+      </div>
+      <div class="form-group">
+        <label>Setor</label>
+        <input type="text" id="colab-setor" list="setores-list" placeholder="Ex: Suporte, RH, Financeiro...">
+        <datalist id="setores-list"></datalist>
+      </div>
+      <div class="form-group">
+        <label>Empresa</label>
+        <div id="colab-empresas-check"></div>
+        <div class="form-hint">Selecione uma ou mais empresas. O colaborador só aparece nas abas das empresas marcadas.</div>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="colab-status">
+          <option value="true">Ativo</option>
+          <option value="false">Inativo</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-colaborador')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveColaborador()"><i class="ti ti-check"></i> Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-colab-detalhe">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="colab-detalhe-nome">Colaborador</h3>
+      <button class="close-btn" onclick="closeModal('modal-colab-detalhe')">&times;</button>
+    </div>
+    <div class="modal-body" id="colab-detalhe-body"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-colab-detalhe')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-local-detalhe">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="local-detalhe-nome">Local</h3>
+      <button class="close-btn" onclick="closeModal('modal-local-detalhe')">&times;</button>
+    </div>
+    <div class="modal-body" id="local-detalhe-body"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-local-detalhe')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal-overlay" id="modal-local">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-local-title">Novo local</h3>
+      <button class="close-btn" onclick="closeModal('modal-local')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="local-id">
+      <div class="form-group">
+        <label>Nome</label>
+        <input type="text" id="local-nome" placeholder="Ex: Estoque, Sala de reunião, Depósito...">
+      </div>
+      <div class="form-group">
+        <label>Empresa</label>
+        <div id="local-empresas-check"></div>
+        <div class="form-hint">Selecione uma ou mais empresas. O local só aparece nas abas das empresas marcadas.</div>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="local-status">
+          <option value="true">Ativo</option>
+          <option value="false">Inativo</option>
+        </select>
+        <div class="form-hint">Locais inativos somem das opções de movimentação, mas continuam aparecendo em equipamentos já registrados com eles.</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-local')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveLocal()"><i class="ti ti-check"></i> Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-auditoria">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="auditoria-equip-titulo">Auditoria</h3>
+      <button class="close-btn" onclick="closeModal('modal-auditoria')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="auditoria-equip-id">
+      <div class="form-group">
+        <label>Registrar nova auditoria</label>
+        <div class="form-row">
+          <div class="form-group"><input type="date" id="auditoria-data"></div>
+          <div class="form-group"><input type="text" id="auditoria-responsavel" placeholder="Responsável"></div>
+        </div>
+        <textarea id="auditoria-observacao" placeholder="Observação (opcional)"></textarea>
+        <button class="btn btn-primary" style="margin-top:8px" onclick="salvarAuditoria()"><i class="ti ti-check"></i> Registrar auditoria</button>
+      </div>
+      <div class="form-group">
+        <label>Histórico de auditorias</label>
+        <div id="auditoria-historico" class="colab-equip-list"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-auditoria')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-editar-mov">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Editar movimentação</h3>
+      <button class="close-btn" onclick="closeModal('modal-editar-mov')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editmov-id">
+      <div class="form-group">
+        <label>Equipamento</label>
+        <div class="mov-eq-current" style="display:flex" id="editmov-equip-info"></div>
+      </div>
+      <div class="form-group"><label>Tipo</label>
+        <select id="editmov-tipo"></select>
+      </div>
+      <div class="form-group">
+        <label>Origem</label>
+        <input type="text" id="editmov-ori-display" readonly style="background:var(--gray-100);color:var(--gray-700);cursor:default">
+        <div class="form-hint">Vem do registro original — não é editável aqui.</div>
+      </div>
+      <div class="form-group">
+        <label>Destino</label>
+        <div id="editmov-dst-rows" class="dst-rows"></div>
+        <button type="button" class="dst-add-link" onclick="addEditMovDestinoRow()"><i class="ti ti-plus"></i> Incluir outro</button>
+        <div class="form-hint">Selecione uma pessoa ou local.</div>
+      </div>
+      <div class="form-group"><label>Registrado por</label><input type="text" id="editmov-resp"></div>
+      <div class="form-group"><label>Motivo</label><textarea id="editmov-mot"></textarea></div>
+      <div class="form-hint">Isso corrige apenas o registro no histórico. Se essa for a movimentação mais recente do equipamento, ajuste o status/colaborador dele manualmente na aba Equipamentos, se necessário.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-editar-mov')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveEditMovimentacao()"><i class="ti ti-check"></i> Salvar</button>
+    </div>
+  </div>
+</div>
+
+<datalist id="locais-datalist"></datalist>
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// CONFIGURAÇÃO
+// ============================================================
+const SB_URL = 'https://gvpgwvncuyhoyojtknsd.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd2cGd3dm5jdXlob3lvanRrbnNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5MzgyNTAsImV4cCI6MjEwMTUxNDI1MH0.67ZmRSoiQSA6GNxAzxnlhjOkkYZmZ_5TKh2z9bSZhp0';
+const H = {'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=representation'};
+
+async function api(path, method='GET', body=null){
+  const r = await fetch(SB_URL+'/rest/v1/'+path, {method, headers:H, body: body ? JSON.stringify(body) : null});
+  if(!r.ok){ const e = await r.json().catch(()=>({message:'Erro na requisição'})); throw new Error(e.message||'Erro'); }
+  return r.status===204 ? null : r.json();
+}
+
+const TIPO_ICON = {'Notebook':'ti-device-laptop','CPU':'ti-cpu','Monitor':'ti-device-desktop','Teclado':'ti-keyboard','Mouse':'ti-mouse','Headphone':'ti-headphones','Suporte Notebook':'ti-device-tablet','Suporte de Pé':'ti-align-center','Cadeira':'ti-armchair','Mesa':'ti-table'};
+const MOV_BADGE = {
+  'Alocação inicial':{cls:'badge-green',icon:'ti-circle-plus'},
+  'Transferência':{cls:'badge-purple',icon:'ti-transfer'},
+  'Devolução':{cls:'badge-amber',icon:'ti-corner-down-left'},
+  'Manutenção':{cls:'badge-amber',icon:'ti-tool'},
+  'Empréstimo':{cls:'badge-purple',icon:'ti-arrow-big-right-lines'},
+  'Descartado':{cls:'badge-gray',icon:'ti-trash'},
+  'Em avaliação':{cls:'badge-amber',icon:'ti-clipboard-search'},
+  'Transferência de empresa':{cls:'badge-purple',icon:'ti-building'}
+};
+const STATUS_EQUIP = ['Disponível','Alocado','Emprestado','Manutenção','Em avaliação','Descartado'];
+const STATUS_META = {
+  'Disponível':{cls:'badge-green',icon:'ti-circle-check'},
+  'Alocado':{cls:'badge-purple',icon:'ti-user'},
+  'Emprestado':{cls:'badge-amber',icon:'ti-arrows-exchange'},
+  'Manutenção':{cls:'badge-amber',icon:'ti-tool'},
+  'Em avaliação':{cls:'badge-amber',icon:'ti-clipboard-search'},
+  'Descartado':{cls:'badge-gray',icon:'ti-trash'}
+};
+function statusBadgeEquip(e){
+  const m = STATUS_META[e.status];
+  return m ? `<span class="badge ${m.cls}"><i class="ti ${m.icon}"></i>${e.status}</span>` : (e.status || '—');
+}
+function equipMatchStatus(e, statusF){
+  return !statusF || e.status===statusF;
+}
+
+function showToast(msg, type='success'){
+  const t = document.getElementById('toast');
+  t.className = 'toast show '+type;
+  t.innerHTML = '<i class="ti '+(type==='success'?'ti-check':'ti-alert-circle')+'"></i> '+msg;
+  setTimeout(()=>t.className='toast', 3200);
+}
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+// ── ESTADO ──────────────────────────────────────────────────
+let empresas = [];
+let empresaAtual = null;
+let equipamentos = [];
+let equipamentosTodos = [];
+let colaboradores = [];
+let locais = [];
+let currentSection = 'equipamentos';
+let eqViewMode = 'tabela';
+
+function setEqViewMode(mode){
+  eqViewMode = mode;
+  renderEquipamentos();
+}
+
+// ── BOOT ────────────────────────────────────────────────────
+async function boot(){
+  try{
+    empresas = await api('empresas?select=*&order=nome');
+  }catch(e){
+    document.body.innerHTML = '<div class="empty-state" style="margin-top:60px"><i class="ti ti-wifi-off"></i><p>Não foi possível conectar ao Supabase.</p><p style="font-size:12px;margin-top:6px">Confira se SB_URL e SB_KEY foram preenchidos corretamente no código.</p><p style="font-size:12px;margin-top:10px;color:var(--red)">'+e.message+'</p></div>';
+    return;
+  }
+  const salva = localStorage.getItem('empresa_atual');
+  if(salva){
+    const found = empresas.find(e=>e.id===salva);
+    if(found){ empresaAtual = found; return renderApp(); }
+  }
+  renderGate();
+}
+
+function renderGate(){
+  document.getElementById('gate').style.display = 'flex';
+  document.getElementById('app-root').style.display = 'none';
+  const wrap = document.getElementById('empresa-cards');
+  wrap.innerHTML = empresas.map(e=>`
+    <div class="empresa-card" onclick="selecionarEmpresa('${e.id}')">
+      <i class="ti ti-building"></i>
+      <span>${e.nome}</span>
+    </div>`).join('');
+}
+
+function selecionarEmpresa(id){
+  empresaAtual = empresas.find(e=>e.id===id);
+  localStorage.setItem('empresa_atual', id);
+  renderApp();
+}
+
+function trocarEmpresa(){
+  localStorage.removeItem('empresa_atual');
+  empresaAtual = null;
+  renderGate();
+}
+
+// ── SHELL DO APP ────────────────────────────────────────────
+function renderApp(){
+  document.getElementById('gate').style.display = 'none';
+  const root = document.getElementById('app-root');
+  root.style.display = 'flex';
+  root.innerHTML = `
+    <div class="app">
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <h1>Gestão de Equipamentos</h1>
+          <p>Grupo Nexxus</p>
+        </div>
+        <div class="empresa-chip"><i class="ti ti-building"></i> ${empresaAtual.nome}</div>
+        <button class="trocar-empresa-btn" onclick="trocarEmpresa()">Trocar empresa</button>
+        <nav class="sidebar-nav">
+          <div class="nav-section">Equipamentos</div>
+          <div class="nav-item active" onclick="navigate('equipamentos')"><i class="ti ti-devices"></i> Equipamentos</div>
+          <div class="nav-item" onclick="navigate('movimentar')"><i class="ti ti-transfer"></i> Movimentar</div>
+          <div class="nav-item" onclick="navigate('historico')"><i class="ti ti-history"></i> Histórico</div>
+          <div class="nav-section">Cadastros</div>
+          <div class="nav-item" onclick="navigate('cadastros')"><i class="ti ti-address-book"></i> Cadastros</div>
+        </nav>
+      </aside>
+      <div class="main">
+        <div class="topbar">
+          <span class="topbar-title" id="topbar-title">Equipamentos</span>
+          <div class="topbar-actions" id="topbar-actions"></div>
+        </div>
+        <div class="content" id="content">
+          <div class="loading"><i class="ti ti-refresh"></i><p style="margin-top:12px">Carregando...</p></div>
+        </div>
+      </div>
+    </div>`;
+  document.addEventListener('click', closeMovEqResultsOutside);
+  navigate('equipamentos');
+}
+
+function emBreve(){ showToast('Essa aba entra na próxima etapa do projeto.', 'error'); }
+
+async function navigate(section){
+  currentSection = section;
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  const idx = {equipamentos:0, movimentar:1, historico:2, cadastros:3}[section];
+  if(idx!==undefined) document.querySelectorAll('.nav-item')[idx].classList.add('active');
+  document.getElementById('topbar-title').textContent = {equipamentos:'Equipamentos', movimentar:'Registrar movimentação', historico:'Histórico de movimentações', cadastros:'Cadastros'}[section] || '';
+  document.getElementById('topbar-actions').innerHTML = '';
+  await loadDados();
+  if(section==='equipamentos') renderEquipamentos();
+  if(section==='movimentar') renderMovimentar();
+  if(section==='historico') renderHistorico(null);
+  if(section==='cadastros') renderCadastros();
+}
+
+async function loadDados(){
+  const content = document.getElementById('content');
+  content.innerHTML = '<div class="loading"><i class="ti ti-refresh"></i><p style="margin-top:12px">Carregando...</p></div>';
+  try{
+    [equipamentos, colaboradores, locais, equipamentosTodos] = await Promise.all([
+      api(`equipamentos?empresa_id=eq.${empresaAtual.id}&select=*,colaborador_atual:colaboradores!colaborador_atual_id(id,nome,setor),extras:equipamento_colaboradores_extra(colaborador:colaboradores(id,nome)),emprestado_para:empresas!emprestado_para_empresa_id(id,nome)&order=tipo,patrimonio`),
+      api(`colaboradores?select=id,nome,setor,cargo,ativo,vinculos:colaborador_empresas(empresa_id)&order=nome`),
+      api(`locais?select=id,nome,ativo,vinculos:local_empresas(empresa_id)&order=nome`),
+      api(`equipamentos?select=id,tipo,patrimonio,status,local,empresa_id,colaborador_atual_id,extras:equipamento_colaboradores_extra(colaborador_id)&order=tipo,patrimonio`)
+    ]);
+    colaboradores.forEach(c=>{ c.empresaIds = (c.vinculos||[]).map(v=>v.empresa_id); });
+    locais.forEach(l=>{ l.empresaIds = (l.vinculos||[]).map(v=>v.empresa_id); });
+    equipamentosTodos.forEach(e=>{ e.extraIds = (e.extras||[]).map(x=>x.colaborador_id); });
+  }catch(e){
+    content.innerHTML = '<div class="empty-state"><i class="ti ti-wifi-off"></i><p>Erro ao carregar dados: '+e.message+'</p></div>';
+    throw e;
+  }
+}
+
+// ── EQUIPAMENTOS ────────────────────────────────────────────
+function renderEquipamentos(){
+  const content = document.getElementById('content');
+  const actions = document.getElementById('topbar-actions');
+  actions.innerHTML = `<button class="btn" onclick="exportEquipamentosCSV()"><i class="ti ti-download"></i> Exportar CSV</button><button class="btn" onclick="navigate('movimentar')"><i class="ti ti-transfer"></i> Movimentar</button><button class="btn btn-primary" onclick="openNovoEquipamento()"><i class="ti ti-plus"></i> Novo equipamento</button>`;
+
+  const total = equipamentos.length;
+  const contagem = {};
+  STATUS_EQUIP.forEach(s=>contagem[s]=0);
+  equipamentos.forEach(e=>{ if(contagem[e.status]!==undefined) contagem[e.status]++; });
+
+  const locaisDisponiveis = locaisConhecidos();
+
+  content.innerHTML = `
+    <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))">
+      <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value">${total}</div></div>
+      ${STATUS_EQUIP.map(s=>`<div class="stat-card"><div class="stat-label">${s}</div><div class="stat-value">${contagem[s]}</div></div>`).join('')}
+    </div>
+    <div class="filters">
+      <div class="search-box"><i class="ti ti-search"></i><input type="text" id="eq-busca" placeholder="Buscar por patrimônio, colaborador ou local..." oninput="filtrarEquipamentos()"></div>
+      <select id="eq-filtro-local" onchange="filtrarEquipamentos()">
+        <option value="">Todos os locais</option>
+        ${locaisDisponiveis.map(l=>`<option value="${l}">${l}</option>`).join('')}
+      </select>
+      <select id="eq-filtro-status" onchange="filtrarEquipamentos()">
+        <option value="">Todos os status</option>
+        ${STATUS_EQUIP.map(s=>`<option>${s}</option>`).join('')}
+      </select>
+      <button class="btn ${eqViewMode==='tabela'?'btn-primary':''}" onclick="setEqViewMode('tabela')"><i class="ti ti-table"></i> Tabela</button>
+      <button class="btn ${eqViewMode==='pessoa'?'btn-primary':''}" onclick="setEqViewMode('pessoa')"><i class="ti ti-users"></i> Por pessoa</button>
+    </div>
+    <div id="eq-table-wrap" class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tipo</th><th>Patrimônio</th><th>Status</th><th>Com quem / Onde</th><th>Setor</th><th>Última auditoria</th><th></th></tr></thead>
+          <tbody id="eq-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="eq-colab-view" class="colab-grid" style="display:none"></div>
+  `;
+  filtrarEquipamentos();
+}
+
+function iniciais(nome){
+  return nome.trim().split(/\s+/).slice(0,2).map(p=>p[0]).join('').toUpperCase();
+}
+
+// ── COMBO DE DESTINO (reutilizado no Movimentar e no cadastro de Equipamento) ──
+const destinoState = {};
+function colaboradorNaEmpresa(c){ return (c.empresaIds||[]).includes(empresaAtual.id); }
+function localNaEmpresa(l){ return (l.empresaIds||[]).includes(empresaAtual.id); }
+function locaisConhecidos(){
+  return locais.filter(l=>l.ativo && localNaEmpresa(l)).map(l=>l.nome).sort((a,b)=>a.localeCompare(b,'pt-BR'));
+}
+
+function atualizarDatalistLocais(){
+  const dl = document.getElementById('locais-datalist');
+  if(dl) dl.innerHTML = locaisConhecidos().map(l=>`<option value="${l}"></option>`).join('');
+}
+
+// prefix: identifica o campo (ex: 'equip')
+// colaboradorIds: lista de ids já selecionados (pode ser vazia)
+// localVal: texto do local, se houver
+function initDestinoField(prefix, colaboradorIds, localVal){
+  destinoState[prefix] = {
+    personIds: (colaboradorIds && colaboradorIds.length) ? colaboradorIds.slice() : [null],
+    local: localVal || null
+  };
+  const localInput = document.getElementById(prefix+'-dst-local');
+  if(localInput) localInput.value = localVal || '';
+  renderDestinoRows(prefix);
+}
+
+function resetDestino(prefix){
+  initDestinoField(prefix, [], null);
+}
+
+function renderDestinoRows(prefix){
+  const state = destinoState[prefix];
+  const wrap = document.getElementById(prefix+'-dst-rows');
+  if(!wrap || !state) return;
+  const setorF = (prefix==='mov') ? (document.getElementById('mov-setor')?.value||'') : '';
+  let candidatos = colaboradores.filter(c=>c.ativo && colaboradorNaEmpresa(c));
+  if(setorF) candidatos = candidatos.filter(c=>c.setor===setorF);
+  wrap.innerHTML = state.personIds.map((pid, idx)=>`
+    <div class="dst-row">
+      <select onchange="onPersonSelectChange('${prefix}', ${idx}, this.value)">
+        <option value="">— Nenhum —</option>
+        ${candidatos.map(c=>`<option value="${c.id}" ${c.id===pid?'selected':''}>${c.nome}</option>`).join('')}
+      </select>
+      ${state.personIds.length>1 ? `<button type="button" class="row-remove" onclick="removePersonRow('${prefix}', ${idx})" title="Remover">&times;</button>` : ''}
+    </div>`).join('');
+}
+
+function onPersonSelectChange(prefix, idx, value){
+  const state = destinoState[prefix];
+  state.personIds[idx] = value || null;
+  if(value){
+    state.local = null;
+    const localInput = document.getElementById(prefix+'-dst-local');
+    if(localInput) localInput.value = '';
+  }
+}
+
+function addPersonRow(prefix){
+  destinoState[prefix].personIds.push(null);
+  renderDestinoRows(prefix);
+}
+
+function removePersonRow(prefix, idx){
+  const state = destinoState[prefix];
+  state.personIds.splice(idx,1);
+  if(state.personIds.length===0) state.personIds=[null];
+  renderDestinoRows(prefix);
+}
+
+function onLocalInput(prefix, value){
+  const state = destinoState[prefix];
+  state.local = value.trim() || null;
+  if(value.trim()){
+    state.personIds = [null];
+    renderDestinoRows(prefix);
+  }
+}
+
+// retorna {colaboradores:[ids...], local}
+function coletarDestino(prefix){
+  const state = destinoState[prefix] || {personIds:[], local:null};
+  return { colaboradores: state.personIds.filter(Boolean), local: state.local || null };
+}
+
+// ── DESTINO DO MOVIMENTAR: select único combinando pessoa e local ──
+let movDestinoRows = [null]; // cada item: null | "colab:<id>" | "local:<nome>"
+
+function renderMovDestinoRows(){
+  const wrap = document.getElementById('mov-dst-rows');
+  if(!wrap) return;
+  const candidatos = colaboradores.filter(c=>c.ativo && colaboradorNaEmpresa(c));
+  const locais = locaisConhecidos();
+  wrap.innerHTML = movDestinoRows.map((val, idx)=>`
+    <div class="dst-row">
+      <select onchange="onMovDestinoChange(${idx}, this.value)">
+        <option value="">Selecione uma pessoa ou local</option>
+        <optgroup label="Pessoas">
+          ${candidatos.map(c=>`<option value="colab:${c.id}" ${val===`colab:${c.id}`?'selected':''}>${c.nome}</option>`).join('')}
+        </optgroup>
+        <optgroup label="Locais">
+          ${locais.map(l=>`<option value="local:${l}" ${val===`local:${l}`?'selected':''}>${l}</option>`).join('')}
+        </optgroup>
+      </select>
+      ${movDestinoRows.length>1 ? `<button type="button" class="row-remove" onclick="removeMovDestinoRow(${idx})" title="Remover">&times;</button>` : ''}
+    </div>`).join('');
+}
+
+function onMovDestinoChange(idx, value){
+  movDestinoRows[idx] = value || null;
+}
+
+function addMovDestinoRow(){
+  movDestinoRows.push(null);
+  renderMovDestinoRows();
+}
+
+function removeMovDestinoRow(idx){
+  movDestinoRows.splice(idx,1);
+  if(movDestinoRows.length===0) movDestinoRows=[null];
+  renderMovDestinoRows();
+}
+
+function resetMovDestino(){
+  movDestinoRows = [null];
+  renderMovDestinoRows();
+}
+
+// separa as linhas escolhidas em pessoas e locais
+function coletarMovDestino(){
+  const colaboradoresIds = [];
+  const locaisEscolhidos = [];
+  movDestinoRows.forEach(v=>{
+    if(!v) return;
+    if(v.startsWith('colab:')) colaboradoresIds.push(v.slice(6));
+    else if(v.startsWith('local:')) locaisEscolhidos.push(v.slice(6));
+  });
+  return { colaboradores: colaboradoresIds, locais: locaisEscolhidos };
+}
+
+// ── DESTINO DO EDITAR MOVIMENTAÇÃO (Histórico): mesmo padrão do Movimentar ──
+let editMovDestinoRows = [null];
+
+function renderEditMovDestinoRows(){
+  const wrap = document.getElementById('editmov-dst-rows');
+  if(!wrap) return;
+  const candidatos = colaboradores.filter(c=>c.ativo && colaboradorNaEmpresa(c));
+  const locais = locaisConhecidos();
+  wrap.innerHTML = editMovDestinoRows.map((val, idx)=>`
+    <div class="dst-row">
+      <select onchange="onEditMovDestinoChange(${idx}, this.value)">
+        <option value="">Selecione uma pessoa ou local</option>
+        <optgroup label="Pessoas">
+          ${candidatos.map(c=>`<option value="colab:${c.id}" ${val===`colab:${c.id}`?'selected':''}>${c.nome}</option>`).join('')}
+        </optgroup>
+        <optgroup label="Locais">
+          ${locais.map(l=>`<option value="local:${l}" ${val===`local:${l}`?'selected':''}>${l}</option>`).join('')}
+        </optgroup>
+      </select>
+      ${editMovDestinoRows.length>1 ? `<button type="button" class="row-remove" onclick="removeEditMovDestinoRow(${idx})" title="Remover">&times;</button>` : ''}
+    </div>`).join('');
+}
+
+function onEditMovDestinoChange(idx, value){
+  editMovDestinoRows[idx] = value || null;
+}
+
+function addEditMovDestinoRow(){
+  editMovDestinoRows.push(null);
+  renderEditMovDestinoRows();
+}
+
+function removeEditMovDestinoRow(idx){
+  editMovDestinoRows.splice(idx,1);
+  if(editMovDestinoRows.length===0) editMovDestinoRows=[null];
+  renderEditMovDestinoRows();
+}
+
+function coletarEditMovDestino(){
+  const colaboradoresIds = [];
+  const locaisEscolhidos = [];
+  editMovDestinoRows.forEach(v=>{
+    if(!v) return;
+    if(v.startsWith('colab:')) colaboradoresIds.push(v.slice(6));
+    else if(v.startsWith('local:')) locaisEscolhidos.push(v.slice(6));
+  });
+  return { colaboradores: colaboradoresIds, locais: locaisEscolhidos };
+}
+
+// ── DESTINO DO CADASTRO DE EQUIPAMENTO: mesmo padrão do Movimentar ──
+let equipDestinoRows = [null];
+
+function renderEquipDestinoRows(){
+  const wrap = document.getElementById('equip-dst-rows');
+  if(!wrap) return;
+  const candidatos = colaboradores.filter(c=>c.ativo && colaboradorNaEmpresa(c));
+  const locais = locaisConhecidos();
+  wrap.innerHTML = equipDestinoRows.map((val, idx)=>`
+    <div class="dst-row">
+      <select onchange="onEquipDestinoChange(${idx}, this.value)">
+        <option value="">Selecione uma pessoa ou local</option>
+        <optgroup label="Pessoas">
+          ${candidatos.map(c=>`<option value="colab:${c.id}" ${val===`colab:${c.id}`?'selected':''}>${c.nome}</option>`).join('')}
+        </optgroup>
+        <optgroup label="Locais">
+          ${locais.map(l=>`<option value="local:${l}" ${val===`local:${l}`?'selected':''}>${l}</option>`).join('')}
+        </optgroup>
+      </select>
+      ${equipDestinoRows.length>1 ? `<button type="button" class="row-remove" onclick="removeEquipDestinoRow(${idx})" title="Remover">&times;</button>` : ''}
+    </div>`).join('');
+}
+
+function onEquipDestinoChange(idx, value){
+  equipDestinoRows[idx] = value || null;
+}
+
+function addEquipDestinoRow(){
+  equipDestinoRows.push(null);
+  renderEquipDestinoRows();
+}
+
+function removeEquipDestinoRow(idx){
+  equipDestinoRows.splice(idx,1);
+  if(equipDestinoRows.length===0) equipDestinoRows=[null];
+  renderEquipDestinoRows();
+}
+
+function coletarEquipDestino(){
+  const colaboradoresIds = [];
+  const locaisEscolhidos = [];
+  equipDestinoRows.forEach(v=>{
+    if(!v) return;
+    if(v.startsWith('colab:')) colaboradoresIds.push(v.slice(6));
+    else if(v.startsWith('local:')) locaisEscolhidos.push(v.slice(6));
+  });
+  return { colaboradores: colaboradoresIds, locais: locaisEscolhidos };
+}
+
+function equipTemColaborador(e, colabId){
+  return e.colaborador_atual_id===colabId || (e.extras||[]).some(x=>x.colaborador && x.colaborador.id===colabId);
+}
+
+function equipTemColaboradorGlobal(e, colabId){
+  return e.colaborador_atual_id===colabId || (e.extraIds||[]).includes(colabId);
+}
+
+function empresaNome(id){
+  return empresas.find(e=>e.id===id)?.nome || '—';
+}
+
+function setorDoColaborador(colabId){
+  return colaboradores.find(c=>c.id===colabId)?.setor || null;
+}
+
+// Um equipamento "pertence" a um Local se: está fisicamente marcado
+// nesse local, OU está com uma pessoa (principal ou compartilhada)
+// cujo Setor tem o mesmo nome do local.
+function equipVinculadoLocal(e, localNome){
+  if(e.local === localNome) return true;
+  if(e.colaborador_atual_id && setorDoColaborador(e.colaborador_atual_id) === localNome) return true;
+  const extraIds = e.extraIds || (e.extras||[]).map(x=>x.colaborador?.id).filter(Boolean);
+  return extraIds.some(id => setorDoColaborador(id) === localNome);
+}
+
+function quemEstaComEquipamento(e){
+  if(e.colaborador_atual){
+    const nomes = [e.colaborador_atual.nome, ...(e.extras||[]).map(x=>x.colaborador?.nome).filter(Boolean)];
+    return nomes.join(' <span style="color:var(--gray-400)">/</span> ');
+  }
+  if(e.local) return `<i class="ti ti-map-pin" style="color:var(--gray-400);margin-right:4px"></i>${e.local}`;
+  return '<span style="color:var(--gray-400)">—</span>';
+}
+
+function filtrarEquipamentos(){
+  const busca = (document.getElementById('eq-busca')?.value||'').toLowerCase();
+  const statusF = document.getElementById('eq-filtro-status')?.value||'';
+  const localF = document.getElementById('eq-filtro-local')?.value||'';
+
+  const tableWrap = document.getElementById('eq-table-wrap');
+  const colabView = document.getElementById('eq-colab-view');
+
+  if(eqViewMode==='pessoa'){
+    // ── Visão por pessoa: um card por colaborador, com o que está com ele ──
+    tableWrap.style.display = 'none';
+    colabView.style.display = 'grid';
+
+    let pessoas = colaboradores.filter(c=>c.ativo && colaboradorNaEmpresa(c));
+    if(busca) pessoas = pessoas.filter(c=>c.nome.toLowerCase().includes(busca));
+    if(localF) pessoas = pessoas.filter(c=>c.setor===localF);
+
+    if(pessoas.length===0){
+      colabView.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i class="ti ti-users-group"></i><p>Nenhum colaborador encontrado</p></div>`;
+      return;
+    }
+
+    // Agrupa quem divide equipamento entre si (union-find simples)
+    const grupoDe = {};
+    pessoas.forEach(c=>grupoDe[c.id]=c.id);
+    function raiz(id){ while(grupoDe[id]!==id) id=grupoDe[id]; return id; }
+    function unir(a,b){ const ra=raiz(a), rb=raiz(b); if(ra!==rb) grupoDe[ra]=rb; }
+    const idsRelevantes = new Set(pessoas.map(c=>c.id));
+    equipamentos.forEach(e=>{
+      const donos = [e.colaborador_atual_id, ...(e.extras||[]).map(x=>x.colaborador?.id)].filter(id=>id && idsRelevantes.has(id));
+      for(let i=1;i<donos.length;i++) unir(donos[0], donos[i]);
+    });
+    const grupos = {};
+    pessoas.forEach(c=>{
+      const r = raiz(c.id);
+      (grupos[r] = grupos[r] || []).push(c);
+    });
+
+    colabView.innerHTML = Object.values(grupos).map(grupo=>{
+      const ids = grupo.map(p=>p.id);
+      let itens = equipamentos.filter(e=>ids.some(id=>equipTemColaborador(e, id)));
+      itens = itens.filter(e=>equipMatchStatus(e, statusF));
+      const lista = itens.length ? itens.map(e=>`
+        <div class="colab-equip-item">
+          <span class="eq-nome"><i class="ti ${TIPO_ICON[e.tipo]||'ti-device-desktop'}"></i>${e.tipo} · ${e.patrimonio}${(e.extras && e.extras.length) ? ' <span style="color:var(--gray-400)">(dividido)</span>' : ''}</span>
+          ${statusBadgeEquip(e)}
+        </div>`).join('') : `<div class="colab-equip-empty">Nenhum equipamento no momento</div>`;
+      const nomeGrupo = grupo.map(p=>p.nome).join(' / ');
+      const setorGrupo = grupo.map(p=>p.setor).filter((v,i,a)=>a.indexOf(v)===i).join(' / ');
+      return `
+        <div class="colab-card">
+          <div class="colab-card-header">
+            <div class="colab-avatar">${iniciais(grupo[0].nome)}</div>
+            <div>
+              <div class="colab-name">${nomeGrupo}</div>
+              <div class="colab-setor">${setorGrupo}</div>
+            </div>
+            <span class="colab-count">${itens.length} item${itens.length===1?'':'s'}</span>
+          </div>
+          <div class="colab-equip-list">${lista}</div>
+        </div>`;
+    }).join('');
+    return;
+  }
+
+  // ── Visão padrão: tabela de equipamentos ──
+  tableWrap.style.display = '';
+  colabView.style.display = 'none';
+
+  let lista = equipamentos.filter(e=>{
+    const matchBusca = !busca || e.patrimonio.toLowerCase().includes(busca) || (e.colaborador_atual?.nome||'').toLowerCase().includes(busca) || (e.local||'').toLowerCase().includes(busca);
+    const matchLocal = !localF || equipVinculadoLocal(e, localF);
+    return matchBusca && matchLocal && equipMatchStatus(e, statusF);
+  });
+  const tbody = document.getElementById('eq-tbody');
+  if(lista.length===0){
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><i class="ti ti-devices-off"></i><p>Nenhum equipamento encontrado</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = lista.map(e=>{
+    const quemOnde = quemEstaComEquipamento(e);
+    const emprestadoTag = e.emprestado_para ? `<span class="badge badge-amber" style="margin-left:6px" title="Emprestado desde ${e.emprestado_desde||''}"><i class="ti ti-arrows-exchange"></i> Emprestado → ${e.emprestado_para.nome}</span>` : '';
+    return `
+    <tr>
+      <td><i class="ti ${TIPO_ICON[e.tipo]||'ti-device-desktop'}" style="color:var(--gray-400);margin-right:6px"></i>${e.tipo}</td>
+      <td style="font-family:monospace">${e.patrimonio}</td>
+      <td>${statusBadgeEquip(e)}${emprestadoTag}</td>
+      <td>${quemOnde}</td>
+      <td>${e.colaborador_atual?.setor || e.local || '—'}</td>
+      <td style="color:var(--gray-600)">${fmtAuditoria(e.ultima_auditoria)}</td>
+      <td>
+        <div class="actions-cell">
+          <button class="icon-btn purple" title="Movimentar equipamento" onclick="moverEquipamentoEspecifico('${e.id}')"><i class="ti ti-transfer"></i></button>
+          <button class="icon-btn" title="Auditoria" onclick="abrirAuditoria('${e.id}')"><i class="ti ti-clipboard-check"></i></button>
+          <button class="icon-btn" title="Ver histórico" onclick="verHistoricoEquipamento('${e.id}')"><i class="ti ti-history"></i></button>
+          <button class="icon-btn" title="Editar" onclick="openEditEquipamento('${e.id}')"><i class="ti ti-pencil"></i></button>
+          <button class="icon-btn danger" title="Excluir" onclick="deleteEquipamento('${e.id}')"><i class="ti ti-trash"></i></button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openNovoEquipamento(){
+  document.getElementById('equip-id').value = '';
+  document.getElementById('equip-tipo').value = '';
+  document.getElementById('equip-patrimonio').value = '';
+  document.getElementById('equip-descricao').value = '';
+  document.getElementById('equip-observacoes').value = '';
+  document.getElementById('equip-status').value = 'Disponível';
+  equipDestinoRows = [null];
+  renderEquipDestinoRows();
+  document.getElementById('modal-equip-title').textContent = 'Novo equipamento';
+  openModal('modal-equipamento');
+}
+
+function openEditEquipamento(id){
+  const e = equipamentos.find(x=>x.id===id); if(!e) return;
+  document.getElementById('equip-id').value = e.id;
+  document.getElementById('equip-tipo').value = e.tipo;
+  document.getElementById('equip-patrimonio').value = e.patrimonio;
+  document.getElementById('equip-descricao').value = e.descricao || '';
+  document.getElementById('equip-observacoes').value = e.observacoes || '';
+  document.getElementById('equip-status').value = e.status;
+  equipDestinoRows = [];
+  if(e.colaborador_atual_id) equipDestinoRows.push('colab:'+e.colaborador_atual_id);
+  (e.extras||[]).forEach(x=>{ if(x.colaborador) equipDestinoRows.push('colab:'+x.colaborador.id); });
+  if(!equipDestinoRows.length && e.local) equipDestinoRows.push('local:'+e.local);
+  if(!equipDestinoRows.length) equipDestinoRows = [null];
+  renderEquipDestinoRows();
+  document.getElementById('modal-equip-title').textContent = 'Editar equipamento';
+  openModal('modal-equipamento');
+}
+
+async function saveEquipamento(){
+  const id = document.getElementById('equip-id').value;
+  const patrimonio = document.getElementById('equip-patrimonio').value.trim();
+  if(!patrimonio) return showToast('Informe o patrimônio', 'error');
+  const dst = coletarEquipDestino();
+  const colabIds = dst.colaboradores;
+  const statusSel = document.getElementById('equip-status').value;
+  const data = {
+    empresa_id: empresaAtual.id,
+    tipo: document.getElementById('equip-tipo').value,
+    patrimonio,
+    descricao: document.getElementById('equip-descricao').value.trim() || null,
+    observacoes: document.getElementById('equip-observacoes').value.trim() || null,
+    status: statusSel,
+    colaborador_atual_id: colabIds[0] || null,
+    local: colabIds.length ? null : (dst.locais[0] || null)
+  };
+  try{
+    let equipId = id;
+    if(id) await api('equipamentos?id=eq.'+id, 'PATCH', data);
+    else {
+      const criado = await api('equipamentos', 'POST', data);
+      equipId = criado[0].id;
+    }
+    await api('equipamento_colaboradores_extra?equipamento_id=eq.'+equipId, 'DELETE');
+    if(colabIds.length > 1){
+      for(const cid of colabIds.slice(1)){
+        await api('equipamento_colaboradores_extra', 'POST', {equipamento_id: equipId, colaborador_id: cid});
+      }
+    }
+    closeModal('modal-equipamento');
+    showToast(id ? 'Atualizado!' : 'Cadastrado!');
+    await loadDados(); renderEquipamentos();
+  }catch(e){ showToast(e.message, 'error'); }
+}
+
+async function deleteEquipamento(id){
+  const e = equipamentos.find(x=>x.id===id); if(!e) return;
+  let msg = `Tem certeza que deseja excluir este equipamento?\n\n${e.tipo} — ${e.patrimonio}`;
+  if(e.colaborador_atual) msg += `\n\nEle está atualmente alocado com ${e.colaborador_atual.nome}.`;
+  if(!confirm(msg)) return;
+  try{
+    await api('equipamentos?id=eq.'+id, 'DELETE');
+    showToast('Equipamento excluído!');
+    await loadDados(); renderEquipamentos();
+  }catch(err){
+    if((err.message||'').toLowerCase().includes('foreign key') || (err.message||'').toLowerCase().includes('violates')){
+      showToast('Não foi possível excluir: equipamento possui movimentações no histórico.', 'error');
+    } else {
+      showToast(err.message, 'error');
+    }
+  }
+}
+
+// ── MOVIMENTAR ──────────────────────────────────────────────
+const TIPOS_MOVIMENTACAO = ['Alocação inicial','Transferência','Devolução','Manutenção','Empréstimo','Descartado','Em avaliação'];
+let movSelectedEquip = null;
+
+function renderMovimentar(){
+  const content = document.getElementById('content');
+  const registradoPorSalvo = localStorage.getItem('mov_registrado_por') || '';
+
+  content.innerHTML = `
+    <div class="mov-wrap">
+      <div class="card">
+        <div class="mov-header"><i class="ti ti-transfer"></i><h2>Registrar movimentação</h2></div>
+        <div class="mov-body">
+          <div class="form-group mov-eq-search-wrap">
+            <label>Equipamento</label>
+            <input type="hidden" id="mov-eq">
+            <div class="search-box"><i class="ti ti-search"></i><input type="text" id="mov-eq-search" placeholder="Buscar pelo patrimônio, ex: 000275" autocomplete="off" oninput="filterMovEq()" onfocus="filterMovEq()"></div>
+            <div id="mov-eq-results" class="mov-eq-results"></div>
+          </div>
+
+          <div class="form-group">
+            <label>Origem</label>
+            <input type="text" id="mov-ori-display" readonly placeholder="Preenchido automaticamente ao escolher o equipamento" style="background:var(--gray-100);color:var(--gray-700);cursor:default">
+            <div class="form-hint">Vem automaticamente de quem/onde o equipamento está agora — não é editável aqui. Pra corrigir, edite o equipamento direto na aba Equipamentos.</div>
+          </div>
+
+          <div class="form-group">
+            <label>Destino</label>
+            <div id="mov-dst-rows" class="dst-rows"></div>
+            <button type="button" class="dst-add-link" onclick="addMovDestinoRow()"><i class="ti ti-plus"></i> Incluir outro</button>
+            <div class="form-hint">Selecione uma pessoa ou local. Deixe em branco para "Disponível". Inclua mais de um se o equipamento for compartilhado.</div>
+          </div>
+
+          <div class="form-group"><label>Tipo</label>
+            <select id="mov-tip">${TIPOS_MOVIMENTACAO.map(t=>`<option>${t}</option>`).join('')}</select>
+          </div>
+          <div class="form-group"><label>Registrado por</label><input type="text" id="mov-resp" value="${registradoPorSalvo.replace(/"/g,'&quot;')}" placeholder="Seu nome"></div>
+          <div class="form-group"><label>Motivo</label><textarea id="mov-mot" placeholder="Descreva o motivo..."></textarea></div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="saveMovimentacao()">
+            <i class="ti ti-check"></i> Registrar movimentação
+          </button>
+        </div>
+      </div>
+    </div>`;
+
+  movSelectedEquip = null;
+  document.getElementById('mov-ori-display').value = '';
+  resetMovDestino();
+  document.addEventListener('click', closeMovEqResultsOutside);
+}
+
+function closeMovEqResultsOutside(evt){
+  const box = document.getElementById('mov-eq-results');
+  const input = document.getElementById('mov-eq-search');
+  if(box && input && !box.contains(evt.target) && evt.target!==input) box.classList.remove('open');
+  const histBox = document.getElementById('hist-eq-results');
+  const histInput = document.getElementById('hist-eq-search');
+  if(histBox && histInput && !histBox.contains(evt.target) && evt.target!==histInput) histBox.classList.remove('open');
+}
+
+function filterMovEq(){
+  const q = (document.getElementById('mov-eq-search').value||'').toLowerCase().replace(/\s+/g,'');
+  const results = document.getElementById('mov-eq-results');
+  const matches = equipamentos.filter(e=>e.patrimonio.toLowerCase().replace(/\s+/g,'').includes(q));
+  results.innerHTML = matches.length===0
+    ? `<div style="padding:12px;font-size:13px;color:var(--gray-400)">Nenhum equipamento encontrado</div>`
+    : matches.slice(0,50).map(e=>{
+        const quemOnde = e.colaborador_atual ? `com ${e.colaborador_atual.nome}` : (e.local ? `em ${e.local}` : 'disponível');
+        return `<div class="mov-eq-result-item" onclick="selectMovEq('${e.id}')">
+          <span><strong style="font-family:monospace">${e.patrimonio}</strong> — ${e.tipo}</span>
+          <span style="font-size:11px;color:var(--gray-500);white-space:nowrap">${quemOnde}</span>
+        </div>`;
+      }).join('');
+  results.classList.add('open');
+}
+
+function selectMovEq(id){
+  const e = equipamentos.find(x=>x.id===id); if(!e) return;
+  movSelectedEquip = e;
+  document.getElementById('mov-eq').value = e.id;
+  document.getElementById('mov-eq-search').value = `${e.patrimonio} — ${e.tipo}`;
+  document.getElementById('mov-eq-results').classList.remove('open');
+  const nomes = [e.colaborador_atual?.nome, ...(e.extras||[]).map(x=>x.colaborador?.nome).filter(Boolean)].filter(Boolean);
+  const oriInput = document.getElementById('mov-ori-display');
+  oriInput.value = nomes.length ? nomes.join(' / ') : (e.local || 'Disponível (sem responsável atual)');
+}
+
+async function moverEquipamentoEspecifico(id){
+  await navigate('movimentar');
+  selectMovEq(id);
+}
+
+async function saveMovimentacao(){
+  const equipId = document.getElementById('mov-eq').value;
+  const origemPrincipal = movSelectedEquip?.colaborador_atual_id || null;
+  const origemLocal = movSelectedEquip && !movSelectedEquip.colaborador_atual_id ? (movSelectedEquip.local || null) : null;
+  const dst = coletarMovDestino();
+  const destinoColabIds = dst.colaboradores;
+  const destinoLocais = dst.locais;
+  const tipo = document.getElementById('mov-tip').value;
+  const responsavel = document.getElementById('mov-resp').value.trim();
+  const motivo = document.getElementById('mov-mot').value.trim();
+  if(!equipId) return showToast('Selecione o equipamento', 'error');
+  if(!responsavel) return showToast('Informe quem está registrando', 'error');
+  try{
+    if(destinoColabIds.length > 0 || destinoLocais.length > 0){
+      // uma linha de histórico por pessoa ou local de destino
+      for(const cid of destinoColabIds){
+        await api('movimentacoes', 'POST', {
+          equipamento_id: equipId,
+          colaborador_origem_id: origemPrincipal,
+          origem_local: origemLocal,
+          colaborador_destino_id: cid,
+          destino_local: null,
+          tipo_movimentacao: tipo,
+          registrado_por: responsavel,
+          motivo: motivo || null
+        });
+      }
+      for(const loc of destinoLocais){
+        await api('movimentacoes', 'POST', {
+          equipamento_id: equipId,
+          colaborador_origem_id: origemPrincipal,
+          origem_local: origemLocal,
+          colaborador_destino_id: null,
+          destino_local: loc,
+          tipo_movimentacao: tipo,
+          registrado_por: responsavel,
+          motivo: motivo || null
+        });
+      }
+    } else {
+      await api('movimentacoes', 'POST', {
+        equipamento_id: equipId,
+        colaborador_origem_id: origemPrincipal,
+        origem_local: origemLocal,
+        colaborador_destino_id: null,
+        destino_local: null,
+        tipo_movimentacao: tipo,
+        registrado_por: responsavel,
+        motivo: motivo || null
+      });
+    }
+
+    const temDestino = destinoColabIds.length > 0 || destinoLocais.length > 0;
+    const { status: novoStatus } = calcularStatusEquipamento(tipo, temDestino);
+    const principal = destinoColabIds[0] || null;
+    // pessoas têm prioridade sobre local como estado atual do equipamento;
+    // se só houver locais escolhidos, usa o primeiro (o schema guarda só um)
+    await api('equipamentos?id=eq.'+equipId, 'PATCH', {
+      colaborador_atual_id: principal,
+      local: principal ? null : (destinoLocais[0] || (tipo==='Descartado' ? null : movSelectedEquip?.local || null)),
+      status: novoStatus
+    });
+    // sincroniza a lista de colaboradores extras (a partir do 2º)
+    await api('equipamento_colaboradores_extra?equipamento_id=eq.'+equipId, 'DELETE');
+    if(destinoColabIds.length > 1){
+      for(const cid of destinoColabIds.slice(1)){
+        await api('equipamento_colaboradores_extra', 'POST', {equipamento_id: equipId, colaborador_id: cid});
+      }
+    }
+    localStorage.setItem('mov_registrado_por', responsavel);
+    showToast('Movimentação registrada!');
+    renderMovimentar();
+  }catch(e){ showToast(e.message, 'error'); }
+}
+
+// ── HISTÓRICO ───────────────────────────────────────────────
+let movimentacoes = [];
+
+function fmtDateTime(iso){
+  if(!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('pt-BR') + ', ' + d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+
+function fmtAuditoria(iso){
+  if(!iso) return '<span style="color:var(--gray-400)">Nunca auditado</span>';
+  const d = new Date(iso);
+  const dias = Math.floor((Date.now() - d.getTime()) / 86400000);
+  const relativo = dias<=0 ? 'hoje' : dias===1 ? 'há 1 dia' : `há ${dias} dias`;
+  return `${d.toLocaleDateString('pt-BR')} <span style="color:var(--gray-400);font-size:11px">(${relativo})</span>`;
+}
+
+function origemDestinoDisplay(m, lado){
+  const pessoa = lado==='origem' ? m.origem : m.destino;
+  if(pessoa) return pessoa.nome;
+  const local = lado==='origem' ? m.origem_local : m.destino_local;
+  if(local) return `<i class="ti ti-map-pin" style="color:var(--gray-400);margin-right:4px"></i>${local}`;
+  const nomePreservado = lado==='origem' ? m.colaborador_origem_nome : m.colaborador_destino_nome;
+  if(nomePreservado) return `${nomePreservado} <span style="color:var(--gray-400);font-size:11px">(excluído)</span>`;
+  return nomeOrigemDestino(m, lado);
+}
+
+function nomeOrigemDestino(m, lado){
+  const pessoa = lado==='origem' ? m.origem : m.destino;
+  if(pessoa) return pessoa.nome;
+  const nomePreservado = lado==='origem' ? m.colaborador_origem_nome : m.colaborador_destino_nome;
+  if(nomePreservado) return nomePreservado;
+  const local = lado==='origem' ? m.origem_local : m.destino_local;
+  if(local) return `${local}`;
+  if(m.tipo_movimentacao==='Transferência de empresa'){
+    const empId = lado==='origem' ? m.empresa_origem_id : m.empresa_destino_id;
+    const emp = empresas.find(e=>e.id===empId);
+    if(emp) return emp.nome;
+  }
+  return null;
+}
+
+let histEquipFiltro = null;
+
+async function renderHistorico(presetEquip){
+  if(presetEquip !== undefined) histEquipFiltro = presetEquip;
+  const content = document.getElementById('content');
+  const actions = document.getElementById('topbar-actions');
+  actions.innerHTML = `<button class="btn" onclick="exportHistoricoCSV()"><i class="ti ti-download"></i> Exportar CSV</button>`;
+  content.innerHTML = '<div class="loading"><i class="ti ti-refresh"></i><p style="margin-top:12px">Carregando...</p></div>';
+  try{
+    movimentacoes = await api(`movimentacoes?select=*,equipamento:equipamentos!inner(patrimonio,tipo,empresa_id),origem:colaboradores!colaborador_origem_id(nome),destino:colaboradores!colaborador_destino_id(nome)&equipamento.empresa_id=eq.${empresaAtual.id}&order=data_movimentacao.desc`);
+  }catch(e){
+    content.innerHTML = '<div class="empty-state"><i class="ti ti-wifi-off"></i><p>Erro ao carregar histórico: '+e.message+'</p></div>';
+    return;
+  }
+  content.innerHTML = `
+    <div class="filters">
+      <div class="search-box"><i class="ti ti-search"></i><input type="text" id="hist-busca" placeholder="Buscar por patrimônio, pessoa ou responsável..." oninput="filtrarHistorico()"></div>
+      <select id="hist-filtro-tipo" onchange="filtrarHistorico()">
+        <option value="">Todos os tipos</option>
+        ${TIPOS_MOVIMENTACAO.concat(['Transferência de empresa']).map(t=>`<option>${t}</option>`).join('')}
+      </select>
+      <div class="hist-eq-filter" id="hist-eq-filter-wrap"></div>
+    </div>
+    <div id="hist-table-wrap" class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Data</th><th>Tipo</th><th>Equipamento</th><th>Origem</th><th>Destino</th><th>Motivo</th><th>Por</th><th></th></tr></thead>
+          <tbody id="hist-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="hist-timeline-wrap" class="card" style="display:none;padding:20px"></div>
+  `;
+  renderHistEqFilterBox();
+  filtrarHistorico();
+  document.addEventListener('click', closeMovEqResultsOutside);
+}
+
+function renderHistEqFilterBox(){
+  const wrap = document.getElementById('hist-eq-filter-wrap');
+  if(histEquipFiltro){
+    wrap.innerHTML = `<div class="hist-eq-chip"><i class="ti ti-device-desktop"></i> ${histEquipFiltro.patrimonio} — ${histEquipFiltro.tipo}<button onclick="limparFiltroEquipHistorico()" title="Limpar filtro">&times;</button></div>`;
+  } else {
+    wrap.innerHTML = `
+      <div class="search-box"><i class="ti ti-search"></i><input type="text" id="hist-eq-search" placeholder="Filtrar por equipamento (patrimônio)" autocomplete="off" oninput="buscarEquipHistorico()" onfocus="buscarEquipHistorico()"></div>
+      <div id="hist-eq-results" class="mov-eq-results"></div>`;
+  }
+}
+
+function buscarEquipHistorico(){
+  const q = (document.getElementById('hist-eq-search').value||'').toLowerCase().replace(/\s+/g,'');
+  const results = document.getElementById('hist-eq-results');
+  if(!q){ results.classList.remove('open'); return; }
+  const equipsUnicos = [];
+  const vistos = new Set();
+  movimentacoes.forEach(m=>{
+    if(m.equipamento && !vistos.has(m.equipamento_id) && m.equipamento.patrimonio.toLowerCase().replace(/\s+/g,'').includes(q)){
+      vistos.add(m.equipamento_id);
+      equipsUnicos.push({id:m.equipamento_id, patrimonio:m.equipamento.patrimonio, tipo:m.equipamento.tipo});
+    }
+  });
+  results.innerHTML = equipsUnicos.length===0
+    ? `<div style="padding:12px;font-size:13px;color:var(--gray-400)">Nenhum equipamento encontrado no histórico</div>`
+    : equipsUnicos.slice(0,30).map(e=>`<div class="mov-eq-result-item" onclick="selecionarFiltroEquipHistorico('${e.id}','${e.patrimonio}','${e.tipo}')"><strong style="font-family:monospace">${e.patrimonio}</strong> — ${e.tipo}</div>`).join('');
+  results.classList.add('open');
+}
+
+function selecionarFiltroEquipHistorico(id, patrimonio, tipo){
+  histEquipFiltro = {id, patrimonio, tipo};
+  renderHistEqFilterBox();
+  filtrarHistorico();
+}
+
+function limparFiltroEquipHistorico(){
+  histEquipFiltro = null;
+  renderHistEqFilterBox();
+  filtrarHistorico();
+}
+
+async function verHistoricoEquipamento(id){
+  const e = equipamentos.find(x=>x.id===id); if(!e) return;
+  currentSection = 'historico';
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-item')[2].classList.add('active');
+  document.getElementById('topbar-title').textContent = 'Histórico de movimentações';
+  document.getElementById('topbar-actions').innerHTML = '';
+  await loadDados();
+  await renderHistorico({id: e.id, patrimonio: e.patrimonio, tipo: e.tipo});
+}
+
+async function abrirAuditoria(id){
+  const e = equipamentos.find(x=>x.id===id); if(!e) return;
+  document.getElementById('auditoria-equip-id').value = id;
+  document.getElementById('auditoria-equip-titulo').textContent = `Auditoria — ${e.tipo} · ${e.patrimonio}`;
+  document.getElementById('auditoria-data').value = new Date().toISOString().slice(0,10);
+  document.getElementById('auditoria-responsavel').value = localStorage.getItem('mov_registrado_por') || '';
+  document.getElementById('auditoria-observacao').value = '';
+  openModal('modal-auditoria');
+  await carregarHistoricoAuditoria(id);
+}
+
+async function carregarHistoricoAuditoria(equipId){
+  const wrap = document.getElementById('auditoria-historico');
+  wrap.innerHTML = '<div class="colab-equip-empty">Carregando...</div>';
+  try{
+    const itens = await api(`auditorias?equipamento_id=eq.${equipId}&select=*&order=data_auditoria.desc`);
+    wrap.innerHTML = itens.length ? itens.map(a=>`
+      <div class="colab-equip-item" style="align-items:flex-start;flex-direction:column;gap:2px">
+        <span class="eq-nome"><i class="ti ti-clipboard-check"></i>${new Date(a.data_auditoria+'T00:00:00').toLocaleDateString('pt-BR')} ${a.responsavel ? '· '+a.responsavel : ''}</span>
+        ${a.observacao ? `<span style="font-size:12px;color:var(--gray-600);padding-left:20px">${a.observacao}</span>` : ''}
+      </div>`).join('') : `<div class="colab-equip-empty">Nenhuma auditoria registrada ainda</div>`;
+  }catch(err){
+    wrap.innerHTML = `<div class="colab-equip-empty">Erro ao carregar: ${err.message}</div>`;
+  }
+}
+
+async function salvarAuditoria(){
+  const equipId = document.getElementById('auditoria-equip-id').value;
+  const data = document.getElementById('auditoria-data').value;
+  const responsavel = document.getElementById('auditoria-responsavel').value.trim();
+  const observacao = document.getElementById('auditoria-observacao').value.trim();
+  if(!data) return showToast('Informe a data da auditoria', 'error');
+  if(!responsavel) return showToast('Informe quem está registrando', 'error');
+  try{
+    await api('auditorias', 'POST', {
+      equipamento_id: equipId,
+      data_auditoria: data,
+      responsavel,
+      observacao: observacao || null
+    });
+    // só atualiza o atalho "última auditoria" se essa data for a mais recente
+    const e = equipamentos.find(x=>x.id===equipId);
+    if(!e?.ultima_auditoria || new Date(data) >= new Date(e.ultima_auditoria)){
+      await api('equipamentos?id=eq.'+equipId, 'PATCH', {ultima_auditoria: data});
+    }
+    localStorage.setItem('mov_registrado_por', responsavel);
+    showToast('Auditoria registrada!');
+    document.getElementById('auditoria-observacao').value = '';
+    await carregarHistoricoAuditoria(equipId);
+    await loadDados();
+    if(currentSection==='equipamentos') renderEquipamentos();
+  }catch(e){ showToast(e.message, 'error'); }
+}
+
+function filtrarHistorico(){
+  const tableWrap = document.getElementById('hist-table-wrap');
+  const timelineWrap = document.getElementById('hist-timeline-wrap');
+
+  if(histEquipFiltro){
+    tableWrap.style.display = 'none';
+    timelineWrap.style.display = 'block';
+    const itens = movimentacoes.filter(m=>m.equipamento_id===histEquipFiltro.id).slice().sort((a,b)=>new Date(a.data_movimentacao)-new Date(b.data_movimentacao));
+    if(itens.length===0){
+      timelineWrap.innerHTML = `<div class="empty-state"><i class="ti ti-history-off"></i><p>Nenhuma movimentação registrada para esse equipamento ainda</p></div>`;
+      return;
+    }
+    timelineWrap.innerHTML = `
+      <div style="font-weight:700;font-family:'Sora',sans-serif;font-size:14px;margin-bottom:16px">
+        <i class="ti ti-device-desktop" style="color:var(--purple);margin-right:6px"></i>${histEquipFiltro.patrimonio} — ${histEquipFiltro.tipo}
+      </div>
+      <div class="timeline">
+        ${itens.map(m=>{
+          const badge = MOV_BADGE[m.tipo_movimentacao] || {cls:'badge-gray',icon:'ti-transfer'};
+          const origemNome = nomeOrigemDestino(m,'origem');
+          const destinoNome = nomeOrigemDestino(m,'destino');
+          return `
+          <div class="timeline-item">
+            <div class="timeline-dot ${badge.cls}"><i class="ti ${badge.icon}"></i></div>
+            <div class="timeline-card">
+              <div class="timeline-date">${fmtDateTime(m.data_movimentacao)}</div>
+              <div class="timeline-title"><span class="badge ${badge.cls}"><i class="ti ${badge.icon}"></i>${m.tipo_movimentacao}</span></div>
+              <div class="timeline-detail">${origemNome?origemDestinoDisplay(m,'origem'):'—'} <i class="ti ti-arrow-right" style="margin:0 4px;color:var(--gray-400)"></i> ${destinoNome?origemDestinoDisplay(m,'destino'):'—'} <span style="color:var(--gray-400)">· por ${m.registrado_por||'—'}</span></div>
+              ${m.motivo ? `<div class="timeline-motivo">${m.motivo}</div>` : ''}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`;
+    return;
+  }
+  tableWrap.style.display = '';
+  timelineWrap.style.display = 'none';
+
+  const busca = (document.getElementById('hist-busca')?.value||'').toLowerCase();
+  const tipoF = document.getElementById('hist-filtro-tipo')?.value||'';
+  let lista = movimentacoes.filter(m=>{
+    const origemNome = nomeOrigemDestino(m,'origem') || '';
+    const destinoNome = nomeOrigemDestino(m,'destino') || '';
+    const texto = `${m.equipamento?.patrimonio||''} ${origemNome} ${destinoNome} ${m.registrado_por||''}`.toLowerCase();
+    const matchBusca = !busca || texto.includes(busca);
+    const matchTipo = !tipoF || m.tipo_movimentacao===tipoF;
+    return matchBusca && matchTipo;
+  });
+  const tbody = document.getElementById('hist-tbody');
+  if(lista.length===0){
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><i class="ti ti-history-off"></i><p>Nenhuma movimentação encontrada</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = lista.map(m=>{
+    const badge = MOV_BADGE[m.tipo_movimentacao] || {cls:'badge-gray',icon:'ti-transfer'};
+    const origemNome = nomeOrigemDestino(m,'origem');
+    const destinoNome = nomeOrigemDestino(m,'destino');
+    const podeEditar = m.tipo_movimentacao !== 'Transferência de empresa';
+    return `
+    <tr>
+      <td style="white-space:nowrap;color:var(--gray-600)">${fmtDateTime(m.data_movimentacao)}</td>
+      <td><span class="badge ${badge.cls}"><i class="ti ${badge.icon}"></i>${m.tipo_movimentacao}</span></td>
+      <td><span style="font-family:monospace">${m.equipamento?.patrimonio||'—'}</span> <span style="font-size:11px;color:var(--gray-500)">${m.equipamento?.tipo||''}</span></td>
+      <td>${origemNome ? origemDestinoDisplay(m,'origem') : '<span style="color:var(--gray-400)">—</span>'}</td>
+      <td>${destinoNome ? origemDestinoDisplay(m,'destino') : '<span style="color:var(--gray-400)">—</span>'}</td>
+      <td style="color:var(--gray-600);max-width:220px">${m.motivo || '—'}</td>
+      <td style="color:var(--gray-600)">${m.registrado_por||'—'}</td>
+      <td>
+        <div class="actions-cell">
+          ${podeEditar ? `<button class="icon-btn" title="Editar" onclick="openEditMovimentacao('${m.id}')"><i class="ti ti-pencil"></i></button>` : ''}
+          <button class="icon-btn danger" title="Excluir" onclick="deleteMovimentacao('${m.id}')"><i class="ti ti-trash"></i></button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function exportEquipamentosCSV(){
+  const linhas = [['Tipo','Patrimônio','Status','Com quem/Onde','Setor','Última auditoria','Descrição','Observações']];
+  equipamentos.forEach(e=>{
+    const nomes = [e.colaborador_atual?.nome, ...(e.extras||[]).map(x=>x.colaborador?.nome).filter(Boolean)].filter(Boolean);
+    const quemOnde = nomes.length ? nomes.join(' / ') : (e.local || '');
+    linhas.push([
+      e.tipo, e.patrimonio, e.status, quemOnde, e.colaborador_atual?.setor || '', e.ultima_auditoria ? new Date(e.ultima_auditoria).toLocaleDateString('pt-BR') : '', e.descricao||'', e.observacoes||''
+    ]);
+  });
+  const csv = linhas.map(l=>l.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(';')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `equipamentos-${empresaAtual.nome.toLowerCase()}-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportHistoricoCSV(){
+  const linhas = [['Data','Tipo','Patrimônio','Equipamento','Origem','Destino','Motivo','Registrado por']];
+  movimentacoes.forEach(m=>{
+    linhas.push([
+      fmtDateTime(m.data_movimentacao), m.tipo_movimentacao, m.equipamento?.patrimonio||'', m.equipamento?.tipo||'',
+      nomeOrigemDestino(m,'origem')||'', nomeOrigemDestino(m,'destino')||'', m.motivo||'', m.registrado_por||''
+    ]);
+  });
+  const csv = linhas.map(l=>l.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(';')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `historico-${empresaAtual.nome.toLowerCase()}-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function openEditMovimentacao(id){
+  const m = movimentacoes.find(x=>x.id===id); if(!m) return;
+  document.getElementById('editmov-id').value = m.id;
+  document.getElementById('editmov-equip-info').innerHTML = `<i class="ti ti-device-desktop"></i> ${m.equipamento?.patrimonio||'—'} — ${m.equipamento?.tipo||''}`;
+  const tipoSel = document.getElementById('editmov-tipo');
+  tipoSel.innerHTML = TIPOS_MOVIMENTACAO.map(t=>`<option ${t===m.tipo_movimentacao?'selected':''}>${t}</option>`).join('');
+
+  document.getElementById('editmov-ori-display').value = m.origem?.nome || m.colaborador_origem_nome || m.origem_local || '—';
+
+  editMovDestinoRows = [null];
+  if(m.destino) editMovDestinoRows = ['colab:'+m.destino.id];
+  else if(m.destino_local) editMovDestinoRows = ['local:'+m.destino_local];
+  renderEditMovDestinoRows();
+
+  document.getElementById('editmov-resp').value = m.registrado_por || '';
+  document.getElementById('editmov-mot').value = m.motivo || '';
+  openModal('modal-editar-mov');
+}
+
+function calcularStatusEquipamento(tipo, temDestino){
+  if(tipo==='Manutenção') return {status:'Manutenção'};
+  if(tipo==='Em avaliação') return {status:'Em avaliação'};
+  if(tipo==='Descartado') return {status:'Descartado'};
+  if(tipo==='Empréstimo') return {status: temDestino ? 'Emprestado' : 'Disponível'};
+  return {status: temDestino ? 'Alocado' : 'Disponível'};
+}
+
+async function saveEditMovimentacao(){
+  const id = document.getElementById('editmov-id').value;
+  const m = movimentacoes.find(x=>x.id===id);
+  const responsavel = document.getElementById('editmov-resp').value.trim();
+  if(!responsavel) return showToast('Informe quem está registrando', 'error');
+  const tipo = document.getElementById('editmov-tipo').value;
+  const dst = coletarEditMovDestino();
+  const destinoId = dst.colaboradores[0] || null;
+  const destinoLocal = dst.locais[0] || null;
+  const data = {
+    tipo_movimentacao: tipo,
+    colaborador_origem_id: m?.colaborador_origem_id || null,
+    origem_local: m?.origem_local || null,
+    colaborador_destino_id: destinoId,
+    destino_local: destinoLocal,
+    registrado_por: responsavel,
+    motivo: document.getElementById('editmov-mot').value.trim() || null
+  };
+  try{
+    await api('movimentacoes?id=eq.'+id, 'PATCH', data);
+    if(m?.equipamento_id){
+      const temDestino = !!(destinoId || destinoLocal);
+      const { status } = calcularStatusEquipamento(tipo, temDestino);
+      const equipPatch = {
+        colaborador_atual_id: destinoLocal ? null : destinoId,
+        status
+      };
+      if(destinoLocal) equipPatch.local = destinoLocal;
+      else if(destinoId || tipo==='Descartado') equipPatch.local = null;
+      const resultado = await api('equipamentos?id=eq.'+m.equipamento_id, 'PATCH', equipPatch);
+      if(!resultado || resultado.length===0){
+        showToast('Movimentação salva, mas não encontrei o equipamento pra atualizar o status — confira manualmente na aba Equipamentos.', 'error');
+      } else {
+        showToast('Movimentação e status do equipamento atualizados!');
+      }
+    } else {
+      showToast('Movimentação salva, mas não identifiquei o equipamento pra atualizar o status.', 'error');
+    }
+    closeModal('modal-editar-mov');
+    renderHistorico();
+  }catch(e){ showToast(e.message, 'error'); }
+}
+
+async function deleteMovimentacao(id){
+  const m = movimentacoes.find(x=>x.id===id); if(!m) return;
+  const msg = `Tem certeza que deseja excluir esta movimentação do histórico?\n\n${m.tipo_movimentacao} — ${m.equipamento?.patrimonio||''}\n\nIsso não altera o status atual do equipamento, só remove o registro do histórico.`;
+  if(!confirm(msg)) return;
+  try{
+    await api('movimentacoes?id=eq.'+id, 'DELETE');
+    showToast('Movimentação excluída!');
+    renderHistorico();
+  }catch(e){ showToast(e.message, 'error'); }
+}
+
+// ── EMPRÉSTIMOS ENTRE EMPRESAS (visão cruzada, ignora a empresa selecionada) ──
+// ── COLABORADORES ───────────────────────────────────────────
+// ── CADASTROS (Colaboradores + Locais, centralizados) ─────────
+let cadastroSubTab = 'colaboradores';
+
+function empresaBadges(empresaIds){
+  if(!empresaIds || empresaIds.length===0) return '<span style="color:var(--gray-400);font-size:12px">Nenhuma empresa</span>';
+  const nomes = empresaIds.map(id=>empresas.find(e=>e.id===id)?.nome).filter(Boolean);
+  return nomes.map(n=>`<span class="badge badge-purple" style="margin-right:4px">${n}</span>`).join('');
+}
+
+function renderEmpresaCheckboxes(containerId, selectedIds){
+  const wrap = document.getElementById(containerId);
+  if(!wrap) return;
+  const sel = selectedIds || [];
+  wrap.innerHTML = empresas.map(e=>`
+    <button type="button" class="empresa-toggle ${sel.includes(e.id)?'selected':''}" data-id="${e.id}" data-selected="${sel.includes(e.id)}" onclick="toggleEmpresaCheck(this)">
+      <i class="ti ti-check"></i> ${e.nome}
+    </button>`).join('');
+}
+
+function toggleEmpresaCheck(btn){
+  const nowSelected = btn.dataset.selected !== 'true';
+  btn.dataset.selected = nowSelected;
+  btn.classList.toggle('selected', nowSelected);
+}
+
+function coletarEmpresasCheck(containerId){
+  return Array.from(document.querySelectorAll('#'+containerId+' .empresa-toggle'))
+    .filter(b=>b.dataset.selected==='true')
+    .map(b=>b.dataset.id);
+}
+
+function renderCadastros(){
+  const content = document.getElementById('content');
+  content.innerHTML = `
+    <div class="filters" style="margin-bottom:16px">
+      <button class="btn ${cadastroSubTab==='colaboradores'?'btn-primary':''}" onclick="switchCadastroTab('colaboradores')"><i class="ti ti-users"></i> Colaboradores</button>
+      <button class="btn ${cadastroSubTab==='locais'?'btn-primary':''}" onclick="switchCadastroTab('locais')"><i class="ti ti-map-pin"></i> Locais</button>
+    </div>
+    <div id="cadastro-subcontent"></div>
+  `;
+  if(cadastroSubTab==='colaboradores') renderColaboradoresTab();
+  else renderLocaisTab();
+}
+
+function switchCadastroTab(tab){
+  cadastroSubTab = tab;
+  renderCadastros();
+}
+
+// ── Colaboradores ──
+function renderColaboradoresTab(){
+  const sub = document.getElementById('cadastro-subcontent');
+  const actions = document.getElementById('topbar-actions');
+  actions.innerHTML = `<button class="btn btn-primary" onclick="openNovoColaborador()"><i class="ti ti-plus"></i> Novo colaborador</button>`;
+
+  const setoresUnicos = Array.from(new Set(colaboradores.map(c=>c.setor).filter(Boolean))).sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  const ativos = colaboradores.filter(c=>c.ativo).length;
+  const inativos = colaboradores.length - ativos;
+
+  sub.innerHTML = `
+    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value">${colaboradores.length}</div></div>
+      <div class="stat-card"><div class="stat-label">Ativos</div><div class="stat-value">${ativos}</div></div>
+      <div class="stat-card"><div class="stat-label">Inativos</div><div class="stat-value">${inativos}</div></div>
+    </div>
+    <div class="filters">
+      <div class="search-box"><i class="ti ti-search"></i><input type="text" id="colab-busca" placeholder="Buscar por nome ou cargo..." oninput="filtrarColaboradores()"></div>
+      <select id="colab-filtro-setor" onchange="filtrarColaboradores()">
+        <option value="">Todos os setores</option>
+        ${setoresUnicos.map(s=>`<option value="${s}">${s}</option>`).join('')}
+      </select>
+      <select id="colab-filtro-empresa" onchange="filtrarColaboradores()">
+        <option value="">Todas as empresas</option>
+        ${empresas.map(e=>`<option value="${e.id}">${e.nome}</option>`).join('')}
+      </select>
+      <select id="colab-filtro-status" onchange="filtrarColaboradores()">
+        <option value="">Todos os status</option>
+        <option value="true">Ativo</option>
+        <option value="false">Inativo</option>
+      </select>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th></th><th>Nome</th><th>Cargo</th><th>Setor</th><th>Empresa</th><th>Status</th><th>Equipamentos</th><th></th></tr></thead>
+          <tbody id="colab-tbody"></tbody>
+        </table>
+      </div>
+    </div>`;
+  filtrarColaboradores();
+}
+
+function filtrarColaboradores(){
+  const busca = (document.getElementById('colab-busca')?.value||'').toLowerCase();
+  const setorF = document.getElementById('colab-filtro-setor')?.value||'';
+  const empresaF = document.getElementById('colab-filtro-empresa')?.value||'';
+  const statusF = document.getElementById('colab-filtro-status')?.value||'';
+  let lista = colaboradores.filter(c=>{
+    const matchBusca = !busca || c.nome.toLowerCase().includes(busca) || (c.cargo||'').toLowerCase().includes(busca);
+    const matchSetor = !setorF || c.setor===setorF;
+    const matchEmpresa = !empresaF || (c.empresaIds||[]).includes(empresaF);
+    const matchStatus = !statusF || String(c.ativo)===statusF;
+    return matchBusca && matchSetor && matchEmpresa && matchStatus;
+  });
+  const tbody = document.getElementById('colab-tbody');
+  if(lista.length===0){
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><i class="ti ti-users-group"></i><p>Nenhum colaborador encontrado</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = lista.map(c=>{
+    const qtdEquip = equipamentosTodos.filter(e=>equipTemColaboradorGlobal(e, c.id)).length;
+    return `
+    <tr>
+      <td><div class="colab-avatar" style="width:28px;height:28px;font-size:11px">${iniciais(c.nome)}</div></td>
+      <td style="cursor:pointer;font-weight:600" onclick="verDetalheColaborador('${c.id}')">${c.nome}</td>
+      <td style="color:var(--gray-600)">${c.cargo||'—'}</td>
+      <td>${c.setor}</td>
+      <td>${empresaBadges(c.empresaIds)}</td>
+      <td>${c.ativo ? '<span class="badge badge-green">Ativo</span>' : '<span class="badge badge-gray">Inativo</span>'}</td>
+      <td>${qtdEquip}</td>
+      <td>
+        <div class="actions-cell">
+          <button class="icon-btn" title="Editar" onclick="openEditColaborador('${c.id}')"><i class="ti ti-pencil"></i></button>
+          <button class="icon-btn danger" title="Excluir" onclick="deleteColaborador('${c.id}')"><i class="ti ti-trash"></i></button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function verDetalheColaborador(id){
+  const c = colaboradores.find(x=>x.id===id); if(!c) return;
+  document.getElementById('colab-detalhe-nome').textContent = c.nome;
+  const itens = equipamentosTodos.filter(e=>equipTemColaboradorGlobal(e, c.id));
+  const lista = itens.length ? itens.map(e=>`
+    <div class="colab-equip-item">
+      <span class="eq-nome"><i class="ti ${TIPO_ICON[e.tipo]||'ti-device-desktop'}"></i>${e.tipo} · ${e.patrimonio}${(e.extraIds && e.extraIds.length) ? ' <span style="color:var(--gray-400)">(dividido)</span>' : ''} <span style="color:var(--gray-400);font-size:11px">— ${empresaNome(e.empresa_id)}</span></span>
+      ${statusBadgeEquip(e)}
+    </div>`).join('') : `<div class="colab-equip-empty">Nenhum equipamento no momento</div>`;
+  document.getElementById('colab-detalhe-body').innerHTML = `
+    <div style="margin-bottom:14px">
+      <span class="badge ${c.ativo?'badge-green':'badge-gray'}">${c.ativo?'Ativo':'Inativo'}</span>
+      <span style="color:var(--gray-600);font-size:13px;margin-left:8px">${c.cargo?c.cargo+' · ':''}${c.setor}</span>
+      <div style="margin-top:8px">${empresaBadges(c.empresaIds)}</div>
+    </div>
+    <div class="colab-equip-list">${lista}</div>`;
+  openModal('modal-colab-detalhe');
+}
+
+function openNovoColaborador(){
+  document.getElementById('colab-id').value = '';
+  document.getElementById('colab-nome').value = '';
+  document.getElementById('colab-cargo').value = '';
+  document.getElementById('colab-setor').value = '';
+  document.getElementById('colab-status').value = 'true';
+  document.getElementById('setores-list').innerHTML = Array.from(new Set(colaboradores.map(c=>c.setor).filter(Boolean))).map(s=>`<option value="${s}"></option>`).join('');
+  renderEmpresaCheckboxes('colab-empresas-check', []);
+  document.getElementById('modal-colab-title').textContent = 'Novo colaborador';
+  openModal('modal-colaborador');
+}
+
+function openEditColaborador(id){
+  const c = colaboradores.find(x=>x.id===id); if(!c) return;
+  document.getElementById('colab-id').value = c.id;
+  document.getElementById('colab-nome').value = c.nome;
+  document.getElementById('colab-cargo').value = c.cargo || '';
+  document.getElementById('colab-setor').value = c.setor || '';
+  document.getElementById('colab-status').value = String(c.ativo);
+  document.getElementById('setores-list').innerHTML = Array.from(new Set(colaboradores.map(x=>x.setor).filter(Boolean))).map(s=>`<option value="${s}"></option>`).join('');
+  renderEmpresaCheckboxes('colab-empresas-check', c.empresaIds);
+  document.getElementById('modal-colab-title').textContent = 'Editar colaborador';
+  openModal('modal-colaborador');
+}
+
+async function saveColaborador(){
+  const id = document.getElementById('colab-id').value;
+  const nome = document.getElementById('colab-nome').value.trim();
+  const setor = document.getElementById('colab-setor').value.trim();
+  if(!nome) return showToast('Informe o nome', 'error');
+  if(!setor) return showToast('Informe o setor', 'error');
+  const empresaIds = coletarEmpresasCheck('colab-empresas-check');
+  if(empresaIds.length===0) return showToast('Selecione ao menos uma empresa', 'error');
+  const data = {
+    nome,
+    cargo: document.getElementById('colab-cargo').value.trim() || null,
+    setor,
+    ativo: document.getElementById('colab-status').value === 'true'
+  };
+  try{
+    let colabId = id;
+    if(id) await api('colaboradores?id=eq.'+id, 'PATCH', data);
+    else{
+      const criado = await api('colaboradores', 'POST', data);
+      colabId = criado[0].id;
+    }
+    await api('colaborador_empresas?colaborador_id=eq.'+colabId, 'DELETE');
+    for(const empId of empresaIds){
+      await api('colaborador_empresas', 'POST', {colaborador_id: colabId, empresa_id: empId});
+    }
+    closeModal('modal-colaborador');
+    showToast(id ? 'Atualizado!' : 'Cadastrado!');
+    await loadDados(); renderCadastros();
+  }catch(e){ showToast(e.message, 'error'); }
+}
+
+async function deleteColaborador(id){
+  const c = colaboradores.find(x=>x.id===id); if(!c) return;
+  const equipVinculados = equipamentos.filter(e=>equipTemColaborador(e, id));
+  let msg = `Tem certeza que deseja excluir este colaborador?\n\n${c.nome}`;
+  if(equipVinculados.length>0) msg += `\n\nEle possui ${equipVinculados.length} equipamento(s) alocado(s). Eles ficarão como "Disponível" (sem colaborador) automaticamente.`;
+  msg += `\n\nO histórico de movimentações dele é preservado — fica só o nome registrado, sem o vínculo ativo.`;
+  if(!confirm(msg)) return;
+  try{
+    const comoPrincipal = equipVinculados.filter(e=>e.colaborador_atual_id===id);
+    if(comoPrincipal.length>0){
+      await Promise.all(comoPrincipal.map(e=>api('equipamentos?id=eq.'+e.id, 'PATCH', {colaborador_atual_id:null, status:'Disponível'})));
+    }
+    await api('equipamento_colaboradores_extra?colaborador_id=eq.'+id, 'DELETE');
+    await api('colaborador_empresas?colaborador_id=eq.'+id, 'DELETE');
+    // preserva o nome no histórico antes de soltar o vínculo, pra não perder o registro
+    await api('movimentacoes?colaborador_origem_id=eq.'+id, 'PATCH', {colaborador_origem_nome: c.nome, colaborador_origem_id: null});
+    await api('movimentacoes?colaborador_destino_id=eq.'+id, 'PATCH', {colaborador_destino_nome: c.nome, colaborador_destino_id: null});
+    await api('colaboradores?id=eq.'+id, 'DELETE');
+    showToast('Colaborador excluído! O histórico dele foi mantido.');
+    await loadDados(); renderCadastros();
+  }catch(e){
+    showToast(e.message, 'error');
+  }
+}
+
+// ── Locais ──
+function renderLocaisTab(){
+  const sub = document.getElementById('cadastro-subcontent');
+  const actions = document.getElementById('topbar-actions');
+  actions.innerHTML = `<button class="btn btn-primary" onclick="openNovoLocal()"><i class="ti ti-plus"></i> Novo local</button>`;
+
+  const ativos = locais.filter(l=>l.ativo).length;
+  const inativos = locais.length - ativos;
+
+  sub.innerHTML = `
+    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value">${locais.length}</div></div>
+      <div class="stat-card"><div class="stat-label">Ativos</div><div class="stat-value">${ativos}</div></div>
+      <div class="stat-card"><div class="stat-label">Inativos</div><div class="stat-value">${inativos}</div></div>
+    </div>
+    <div class="filters">
+      <div class="search-box"><i class="ti ti-search"></i><input type="text" id="local-busca" placeholder="Buscar por nome..." oninput="filtrarLocais()"></div>
+      <select id="local-filtro-empresa" onchange="filtrarLocais()">
+        <option value="">Todas as empresas</option>
+        ${empresas.map(e=>`<option value="${e.id}">${e.nome}</option>`).join('')}
+      </select>
+      <select id="local-filtro-status" onchange="filtrarLocais()">
+        <option value="">Todos os status</option>
+        <option value="true">Ativo</option>
+        <option value="false">Inativo</option>
+      </select>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Local</th><th>Empresa</th><th>Status</th><th>Equipamentos aqui</th><th></th></tr></thead>
+          <tbody id="local-tbody"></tbody>
+        </table>
+      </div>
+    </div>`;
+  filtrarLocais();
+}
+
+function filtrarLocais(){
+  const busca = (document.getElementById('local-busca')?.value||'').toLowerCase();
+  const empresaF = document.getElementById('local-filtro-empresa')?.value||'';
+  const statusF = document.getElementById('local-filtro-status')?.value||'';
+  let lista = locais.filter(l=>{
+    const matchBusca = !busca || l.nome.toLowerCase().includes(busca);
+    const matchEmpresa = !empresaF || (l.empresaIds||[]).includes(empresaF);
+    const matchStatus = !statusF || String(l.ativo)===statusF;
+    return matchBusca && matchEmpresa && matchStatus;
+  });
+  const tbody = document.getElementById('local-tbody');
+  if(lista.length===0){
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><i class="ti ti-map-pin-off"></i><p>Nenhum local encontrado</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = lista.map(l=>{
+    const qtdEquip = equipamentosTodos.filter(e=>equipVinculadoLocal(e, l.nome)).length;
+    return `
+    <tr>
+      <td style="cursor:pointer;font-weight:600" onclick="verDetalheLocal('${l.id}')"><i class="ti ti-map-pin" style="color:var(--gray-400);margin-right:6px"></i>${l.nome}</td>
+      <td>${empresaBadges(l.empresaIds)}</td>
+      <td>${l.ativo ? '<span class="badge badge-green">Ativo</span>' : '<span class="badge badge-gray">Inativo</span>'}</td>
+      <td>${qtdEquip}</td>
+      <td>
+        <div class="actions-cell">
+          <button class="icon-btn" title="Editar" onclick="openEditLocal('${l.id}')"><i class="ti ti-pencil"></i></button>
+          <button class="icon-btn danger" title="Excluir" onclick="deleteLocal('${l.id}')"><i class="ti ti-trash"></i></button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function verDetalheLocal(id){
+  const l = locais.find(x=>x.id===id); if(!l) return;
+  document.getElementById('local-detalhe-nome').textContent = l.nome;
+  const itens = equipamentosTodos.filter(e=>equipVinculadoLocal(e, l.nome));
+  const lista = itens.length ? itens.map(e=>`
+    <div class="colab-equip-item">
+      <span class="eq-nome"><i class="ti ${TIPO_ICON[e.tipo]||'ti-device-desktop'}"></i>${e.tipo} · ${e.patrimonio} <span style="color:var(--gray-400);font-size:11px">— ${empresaNome(e.empresa_id)}</span></span>
+      ${statusBadgeEquip(e)}
+    </div>`).join('') : `<div class="colab-equip-empty">Nenhum equipamento neste local no momento</div>`;
+  document.getElementById('local-detalhe-body').innerHTML = `
+    <div style="margin-bottom:14px">
+      <span class="badge ${l.ativo?'badge-green':'badge-gray'}">${l.ativo?'Ativo':'Inativo'}</span>
+      <div style="margin-top:8px">${empresaBadges(l.empresaIds)}</div>
+    </div>
+    <div class="colab-equip-list">${lista}</div>`;
+  openModal('modal-local-detalhe');
+}
+
+function openNovoLocal(){
+  document.getElementById('local-id').value = '';
+  document.getElementById('local-nome').value = '';
+  document.getElementById('local-status').value = 'true';
+  renderEmpresaCheckboxes('local-empresas-check', []);
+  document.getElementById('modal-local-title').textContent = 'Novo local';
+  openModal('modal-local');
+}
+
+function openEditLocal(id){
+  const l = locais.find(x=>x.id===id); if(!l) return;
+  document.getElementById('local-id').value = l.id;
+  document.getElementById('local-nome').value = l.nome;
+  document.getElementById('local-status').value = String(l.ativo);
+  renderEmpresaCheckboxes('local-empresas-check', l.empresaIds);
+  document.getElementById('modal-local-title').textContent = 'Editar local';
+  openModal('modal-local');
+}
+
+async function saveLocal(){
+  const id = document.getElementById('local-id').value;
+  const nome = document.getElementById('local-nome').value.trim();
+  if(!nome) return showToast('Informe o nome do local', 'error');
+  const empresaIds = coletarEmpresasCheck('local-empresas-check');
+  if(empresaIds.length===0) return showToast('Selecione ao menos uma empresa', 'error');
+  const data = { nome, ativo: document.getElementById('local-status').value === 'true' };
+  try{
+    let localId = id;
+    if(id) await api('locais?id=eq.'+id, 'PATCH', data);
+    else{
+      const criado = await api('locais', 'POST', data);
+      localId = criado[0].id;
+    }
+    await api('local_empresas?local_id=eq.'+localId, 'DELETE');
+    for(const empId of empresaIds){
+      await api('local_empresas', 'POST', {local_id: localId, empresa_id: empId});
+    }
+    closeModal('modal-local');
+    showToast(id ? 'Atualizado!' : 'Cadastrado!');
+    await loadDados(); renderCadastros();
+  }catch(e){ showToast(e.message, 'error'); }
+}
+
+async function deleteLocal(id){
+  const l = locais.find(x=>x.id===id); if(!l) return;
+  const qtdEquip = equipamentosTodos.filter(e=>e.local===l.nome).length;
+  let msg = `Tem certeza que deseja excluir este local?\n\n${l.nome}`;
+  if(qtdEquip>0) msg += `\n\n${qtdEquip} equipamento(s) desta empresa está(ão) marcado(s) com esse local no momento. Eles continuam com o texto salvo, mas o local deixa de aparecer na lista pra novas movimentações.`;
+  if(!confirm(msg)) return;
+  try{
+    await api('local_empresas?local_id=eq.'+id, 'DELETE');
+    await api('locais?id=eq.'+id, 'DELETE');
+    showToast('Local excluído!');
+    await loadDados(); renderCadastros();
+  }catch(e){ showToast(e.message, 'error'); }
+}
+
+boot();
+</script>
+</body>
+</html>

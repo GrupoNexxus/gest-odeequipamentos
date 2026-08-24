@@ -569,6 +569,23 @@ function showToast(msg, type='success'){
 function openModal(id){ document.getElementById(id).classList.add('open'); }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 
+// ── DATAS: sempre usar horário LOCAL, nunca toISOString() (que é UTC e
+// pode "pular" pro dia seguinte à noite em fusos atrás de UTC, como o nosso) ──
+function dataHojeLocal(){
+  const d = new Date();
+  const ano = d.getFullYear();
+  const mes = String(d.getMonth()+1).padStart(2,'0');
+  const dia = String(d.getDate()).padStart(2,'0');
+  return `${ano}-${mes}-${dia}`;
+}
+// recebe uma data "YYYY-MM-DD" (sem hora) e devolve um Date à meia-noite
+// LOCAL — evita o new Date("YYYY-MM-DD") nativo, que interpreta como UTC
+// e desloca um dia pra trás na exibição em fusos atrás de UTC
+function parseDataLocal(iso){
+  if(!iso) return null;
+  return new Date(iso.slice(0,10)+'T00:00:00');
+}
+
 // ── ESTADO ──────────────────────────────────────────────────
 let empresas = [];
 let empresaAtual = null;
@@ -1385,7 +1402,7 @@ async function saveMovimentacao(){
     const temDestino = destinoColabIds.length > 0 || destinoLocais.length > 0;
     const { status: novoStatus } = calcularStatusEquipamento(tipo, temDestino);
     const principal = destinoColabIds[0] || null;
-    const hoje = new Date().toISOString().slice(0,10);
+    const hoje = dataHojeLocal();
     // pessoas têm prioridade sobre local como estado atual do equipamento;
     // se só houver locais escolhidos, usa o primeiro (o schema guarda só um)
     await api('equipamentos?id=eq.'+equipId, 'PATCH', {
@@ -1426,8 +1443,8 @@ function fmtDateTime(iso){
 
 function fmtAuditoria(iso){
   if(!iso) return '<span style="color:var(--gray-400)">Nunca auditado</span>';
-  const d = new Date(iso);
-  const dias = Math.floor((Date.now() - d.getTime()) / 86400000);
+  const d = parseDataLocal(iso);
+  const dias = Math.floor((parseDataLocal(dataHojeLocal()).getTime() - d.getTime()) / 86400000);
   const relativo = dias<=0 ? 'hoje' : dias===1 ? 'há 1 dia' : `há ${dias} dias`;
   return `${d.toLocaleDateString('pt-BR')} <span style="color:var(--gray-400);font-size:11px">(${relativo})</span>`;
 }
@@ -1435,7 +1452,7 @@ function fmtAuditoria(iso){
 // Considerado vencido quando nunca foi auditado ou já passou de 1 ano
 function auditoriaVencida(iso){
   if(!iso) return true;
-  const dias = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+  const dias = Math.floor((parseDataLocal(dataHojeLocal()).getTime() - parseDataLocal(iso).getTime()) / 86400000);
   return dias > 365;
 }
 
@@ -1565,7 +1582,7 @@ async function abrirAuditoria(id){
   const e = equipamentos.find(x=>x.id===id); if(!e) return;
   document.getElementById('auditoria-equip-id').value = id;
   document.getElementById('auditoria-equip-titulo').textContent = `Auditoria — ${e.tipo} · ${e.patrimonio}`;
-  document.getElementById('auditoria-data').value = new Date().toISOString().slice(0,10);
+  document.getElementById('auditoria-data').value = dataHojeLocal();
   document.getElementById('auditoria-responsavel').value = localStorage.getItem('mov_registrado_por') || '';
   document.getElementById('auditoria-observacao').value = '';
   openModal('modal-auditoria');
@@ -1603,7 +1620,7 @@ async function salvarAuditoria(){
     });
     // só atualiza o atalho "última auditoria" se essa data for a mais recente
     const e = equipamentos.find(x=>x.id===equipId);
-    if(!e?.ultima_auditoria || new Date(data) >= new Date(e.ultima_auditoria)){
+    if(!e?.ultima_auditoria || parseDataLocal(data) >= parseDataLocal(e.ultima_auditoria)){
       await api('equipamentos?id=eq.'+equipId, 'PATCH', {ultima_auditoria: data});
     }
     localStorage.setItem('mov_registrado_por', responsavel);
@@ -1996,6 +2013,7 @@ async function saveColaborador(){
   const empresaIds = coletarEmpresasCheck('colab-empresas-check');
   if(empresaIds.length===0) return showToast('Selecione ao menos uma empresa', 'error');
   const data = {
+    empresa_id: empresaIds[0],
     nome,
     cargo: document.getElementById('colab-cargo').value.trim() || null,
     setor,
@@ -2297,7 +2315,7 @@ async function carregarLoteAuditoria(colabId){
       ${itens.map(e=>renderLoteItemRow(e)).join('')}
     </div>
     <div class="form-row">
-      <div class="form-group"><label>Data da auditoria</label><input type="date" id="lote-data" value="${new Date().toISOString().slice(0,10)}"></div>
+      <div class="form-group"><label>Data da auditoria</label><input type="date" id="lote-data" value="${dataHojeLocal()}"></div>
       <div class="form-group"><label>Responsável</label><input type="text" id="lote-responsavel" value="${(localStorage.getItem('mov_registrado_por')||'').replace(/"/g,'&quot;')}" placeholder="Quem está auditando"></div>
     </div>
     <button class="btn btn-primary" onclick="salvarLoteAuditoria()"><i class="ti ti-check"></i> Registrar auditoria dos itens marcados como OK</button>

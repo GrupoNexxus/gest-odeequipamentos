@@ -642,6 +642,7 @@ function renderApp(){
           <div class="nav-item active" onclick="navigate('equipamentos')"><i class="ti ti-devices"></i> Equipamentos</div>
           <div class="nav-item" onclick="navigate('movimentar')"><i class="ti ti-transfer"></i> Movimentar</div>
           <div class="nav-item" onclick="navigate('historico')"><i class="ti ti-history"></i> Histórico</div>
+          <div class="nav-item" onclick="navigate('auditoria')"><i class="ti ti-clipboard-check"></i> Auditoria</div>
           <div class="nav-section">Cadastros</div>
           <div class="nav-item" onclick="navigate('cadastros')"><i class="ti ti-address-book"></i> Cadastros</div>
         </nav>
@@ -665,14 +666,15 @@ function emBreve(){ showToast('Essa aba entra na próxima etapa do projeto.', 'e
 async function navigate(section){
   currentSection = section;
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
-  const idx = {equipamentos:0, movimentar:1, historico:2, cadastros:3}[section];
+  const idx = {equipamentos:0, movimentar:1, historico:2, auditoria:3, cadastros:4}[section];
   if(idx!==undefined) document.querySelectorAll('.nav-item')[idx].classList.add('active');
-  document.getElementById('topbar-title').textContent = {equipamentos:'Equipamentos', movimentar:'Registrar movimentação', historico:'Histórico de movimentações', cadastros:'Cadastros'}[section] || '';
+  document.getElementById('topbar-title').textContent = {equipamentos:'Equipamentos', movimentar:'Registrar movimentação', historico:'Histórico de movimentações', auditoria:'Auditoria', cadastros:'Cadastros'}[section] || '';
   document.getElementById('topbar-actions').innerHTML = '';
   await loadDados();
   if(section==='equipamentos') renderEquipamentos();
   if(section==='movimentar') renderMovimentar();
   if(section==='historico') renderHistorico(null);
+  if(section==='auditoria') renderAuditoria();
   if(section==='cadastros') renderCadastros();
 }
 
@@ -725,6 +727,7 @@ function renderEquipamentos(){
       </select>
       <button class="btn ${eqViewMode==='tabela'?'btn-primary':''}" onclick="setEqViewMode('tabela')"><i class="ti ti-table"></i> Tabela</button>
       <button class="btn ${eqViewMode==='pessoa'?'btn-primary':''}" onclick="setEqViewMode('pessoa')"><i class="ti ti-users"></i> Por pessoa</button>
+      <button class="btn ${eqViewMode==='compartilhados'?'btn-primary':''}" onclick="setEqViewMode('compartilhados')"><i class="ti ti-users-group"></i> Compartilhados</button>
     </div>
     <div id="eq-table-wrap" class="card">
       <div class="table-wrap">
@@ -1006,6 +1009,16 @@ function equipVinculadoLocal(e, localNome){
   return extraIds.some(id => setorDoColaborador(id) === localNome);
 }
 
+// Retorna [[tipo, quantidade], ...] para tipos que aparecem mais de uma vez
+// numa lista de equipamentos (Monitor é exceção — não conta como duplicidade)
+function tiposDuplicados(itens){
+  const contagem = {};
+  itens.forEach(e=>{
+    if(e.tipo && e.tipo!=='Monitor') contagem[e.tipo] = (contagem[e.tipo]||0)+1;
+  });
+  return Object.entries(contagem).filter(([tipo,qtd])=>qtd>1);
+}
+
 function quemEstaComEquipamento(e){
   if(e.colaborador_atual){
     const nomes = [e.colaborador_atual.nome, ...(e.extras||[]).map(x=>x.colaborador?.nome).filter(Boolean)];
@@ -1023,47 +1036,68 @@ function filtrarEquipamentos(){
   const tableWrap = document.getElementById('eq-table-wrap');
   const colabView = document.getElementById('eq-colab-view');
 
-  if(eqViewMode==='pessoa'){
-    // ── Visão por pessoa: um card por colaborador, com o que está com ele ──
+  if(eqViewMode==='pessoa' || eqViewMode==='compartilhados'){
+    // ── Visão por pessoa: um card por colaborador (ou grupo que compartilha) ──
     tableWrap.style.display = 'none';
     colabView.style.display = 'grid';
 
-    let pessoas = colaboradores.filter(c=>c.ativo && colaboradorNaEmpresa(c));
-    if(busca) pessoas = pessoas.filter(c=>c.nome.toLowerCase().includes(busca));
-    if(localF) pessoas = pessoas.filter(c=>c.setor===localF);
-
-    if(pessoas.length===0){
+    const todos = colaboradores.filter(c=>c.ativo && colaboradorNaEmpresa(c));
+    if(todos.length===0){
       colabView.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i class="ti ti-users-group"></i><p>Nenhum colaborador encontrado</p></div>`;
       return;
     }
 
-    // Agrupa quem divide equipamento entre si (union-find simples)
+    // Agrupa quem divide equipamento entre si (union-find), considerando
+    // TODO MUNDO da empresa — assim, ao buscar "João" que divide um item
+    // com "Maria", os dois aparecem juntos automaticamente no resultado.
     const grupoDe = {};
-    pessoas.forEach(c=>grupoDe[c.id]=c.id);
+    todos.forEach(c=>grupoDe[c.id]=c.id);
     function raiz(id){ while(grupoDe[id]!==id) id=grupoDe[id]; return id; }
     function unir(a,b){ const ra=raiz(a), rb=raiz(b); if(ra!==rb) grupoDe[ra]=rb; }
-    const idsRelevantes = new Set(pessoas.map(c=>c.id));
+    const idsTodos = new Set(todos.map(c=>c.id));
     equipamentos.forEach(e=>{
-      const donos = [e.colaborador_atual_id, ...(e.extras||[]).map(x=>x.colaborador?.id)].filter(id=>id && idsRelevantes.has(id));
+      const donos = [e.colaborador_atual_id, ...(e.extras||[]).map(x=>x.colaborador?.id)].filter(id=>id && idsTodos.has(id));
       for(let i=1;i<donos.length;i++) unir(donos[0], donos[i]);
     });
-    const grupos = {};
-    pessoas.forEach(c=>{
+    const gruposTodos = {};
+    todos.forEach(c=>{
       const r = raiz(c.id);
-      (grupos[r] = grupos[r] || []).push(c);
+      (gruposTodos[r] = gruposTodos[r] || []).push(c);
     });
 
-    colabView.innerHTML = Object.values(grupos).map(grupo=>{
+    // Filtra QUAIS grupos exibir: o grupo entra se qualquer integrante
+    // bater a busca/local — mas mostra o grupo inteiro, não só quem bateu
+    let gruposFiltrados = Object.values(gruposTodos).filter(grupo=>{
+      const matchBusca = !busca || grupo.some(p=>p.nome.toLowerCase().includes(busca));
+      const matchLocal = !localF || grupo.some(p=>p.setor===localF);
+      return matchBusca && matchLocal;
+    });
+    if(eqViewMode==='compartilhados'){
+      gruposFiltrados = gruposFiltrados.filter(grupo=>grupo.length>1);
+    }
+
+    if(gruposFiltrados.length===0){
+      colabView.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i class="ti ti-users-group"></i><p>${eqViewMode==='compartilhados' ? 'Nenhum compartilhamento encontrado' : 'Nenhum colaborador encontrado'}</p></div>`;
+      return;
+    }
+
+    colabView.innerHTML = gruposFiltrados.map(grupo=>{
       const ids = grupo.map(p=>p.id);
       let itens = equipamentos.filter(e=>ids.some(id=>equipTemColaborador(e, id)));
       itens = itens.filter(e=>equipMatchStatus(e, statusF));
-      const lista = itens.length ? itens.map(e=>`
+      const duplicados = tiposDuplicados(itens);
+      const lista = itens.length ? itens.map(e=>{
+        const compartilhado = (e.extras && e.extras.length) > 0;
+        const donoLabel = compartilhado ? [e.colaborador_atual?.nome, ...(e.extras||[]).map(x=>x.colaborador?.nome).filter(Boolean)].filter(Boolean).join(' + ') : '';
+        return `
         <div class="colab-equip-item">
-          <span class="eq-nome"><i class="ti ${TIPO_ICON[e.tipo]||'ti-device-desktop'}"></i>${e.tipo} · ${e.patrimonio}${(e.extras && e.extras.length) ? ' <span style="color:var(--gray-400)">(dividido)</span>' : ''}</span>
+          <span class="eq-nome"><i class="ti ${TIPO_ICON[e.tipo]||'ti-device-desktop'}"></i>${e.tipo} · ${e.patrimonio}${compartilhado ? ` <span style="color:var(--purple);font-weight:700">(compartilhado: ${donoLabel})</span>` : ''}</span>
           ${statusBadgeEquip(e)}
-        </div>`).join('') : `<div class="colab-equip-empty">Nenhum equipamento no momento</div>`;
+        </div>`;
+      }).join('') : `<div class="colab-equip-empty">Nenhum equipamento no momento</div>`;
       const nomeGrupo = grupo.map(p=>p.nome).join(' / ');
       const setorGrupo = grupo.map(p=>p.setor).filter((v,i,a)=>a.indexOf(v)===i).join(' / ');
+      const alertaDuplicado = duplicados.length ? `<div style="background:var(--red-light);color:var(--red);font-size:11px;font-weight:700;padding:6px 10px;border-radius:8px;margin-bottom:8px"><i class="ti ti-alert-triangle"></i> Duplicado: ${duplicados.map(([t,q])=>`${t} (${q})`).join(', ')}</div>` : '';
       return `
         <div class="colab-card">
           <div class="colab-card-header">
@@ -1074,6 +1108,7 @@ function filtrarEquipamentos(){
             </div>
             <span class="colab-count">${itens.length} item${itens.length===1?'':'s'}</span>
           </div>
+          ${alertaDuplicado}
           <div class="colab-equip-list">${lista}</div>
         </div>`;
     }).join('');
@@ -1350,12 +1385,22 @@ async function saveMovimentacao(){
     const temDestino = destinoColabIds.length > 0 || destinoLocais.length > 0;
     const { status: novoStatus } = calcularStatusEquipamento(tipo, temDestino);
     const principal = destinoColabIds[0] || null;
+    const hoje = new Date().toISOString().slice(0,10);
     // pessoas têm prioridade sobre local como estado atual do equipamento;
     // se só houver locais escolhidos, usa o primeiro (o schema guarda só um)
     await api('equipamentos?id=eq.'+equipId, 'PATCH', {
       colaborador_atual_id: principal,
       local: principal ? null : (destinoLocais[0] || (tipo==='Descartado' ? null : movSelectedEquip?.local || null)),
-      status: novoStatus
+      status: novoStatus,
+      ultima_auditoria: hoje
+    });
+    // a movimentação conta como uma conferência do equipamento — registra no
+    // histórico de auditoria também, na mesma data da transferência
+    await api('auditorias', 'POST', {
+      equipamento_id: equipId,
+      data_auditoria: hoje,
+      responsavel,
+      observacao: `Conferido automaticamente na movimentação (${tipo})`
     });
     // sincroniza a lista de colaboradores extras (a partir do 2º)
     await api('equipamento_colaboradores_extra?equipamento_id=eq.'+equipId, 'DELETE');
@@ -1385,6 +1430,20 @@ function fmtAuditoria(iso){
   const dias = Math.floor((Date.now() - d.getTime()) / 86400000);
   const relativo = dias<=0 ? 'hoje' : dias===1 ? 'há 1 dia' : `há ${dias} dias`;
   return `${d.toLocaleDateString('pt-BR')} <span style="color:var(--gray-400);font-size:11px">(${relativo})</span>`;
+}
+
+// Considerado vencido quando nunca foi auditado ou já passou de 1 ano
+function auditoriaVencida(iso){
+  if(!iso) return true;
+  const dias = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+  return dias > 365;
+}
+
+function badgeAuditoria(iso){
+  if(auditoriaVencida(iso)){
+    return `<span class="badge badge-red-solid" style="background:var(--red-light);color:var(--red)"><i class="ti ti-alert-triangle"></i> ${iso ? 'Vencida' : 'Nunca auditado'}</span>`;
+  }
+  return `<span class="badge badge-green"><i class="ti ti-circle-check"></i> Em dia</span>`;
 }
 
 function origemDestinoDisplay(m, lado){
@@ -1861,7 +1920,10 @@ function filtrarColaboradores(){
     return;
   }
   tbody.innerHTML = lista.map(c=>{
-    const qtdEquip = equipamentosTodos.filter(e=>equipTemColaboradorGlobal(e, c.id)).length;
+    const itensC = equipamentosTodos.filter(e=>equipTemColaboradorGlobal(e, c.id));
+    const qtdEquip = itensC.length;
+    const dup = tiposDuplicados(itensC);
+    const dupTag = dup.length ? ` <span class="badge" style="background:var(--red-light);color:var(--red)" title="${dup.map(([t,q])=>`${t} (${q})`).join(', ')}"><i class="ti ti-alert-triangle"></i> Duplicado</span>` : '';
     return `
     <tr>
       <td><div class="colab-avatar" style="width:28px;height:28px;font-size:11px">${iniciais(c.nome)}</div></td>
@@ -1870,7 +1932,7 @@ function filtrarColaboradores(){
       <td>${c.setor}</td>
       <td>${empresaBadges(c.empresaIds)}</td>
       <td>${c.ativo ? '<span class="badge badge-green">Ativo</span>' : '<span class="badge badge-gray">Inativo</span>'}</td>
-      <td>${qtdEquip}</td>
+      <td>${qtdEquip}${dupTag}</td>
       <td>
         <div class="actions-cell">
           <button class="icon-btn" title="Editar" onclick="openEditColaborador('${c.id}')"><i class="ti ti-pencil"></i></button>
@@ -2124,6 +2186,171 @@ async function deleteLocal(id){
     await api('locais?id=eq.'+id, 'DELETE');
     showToast('Local excluído!');
     await loadDados(); renderCadastros();
+  }catch(e){ showToast(e.message, 'error'); }
+}
+
+// ── AUDITORIA ────────────────────────────────────────────────
+let loteColabSelecionado = null;
+let loteItensState = {}; // equipId -> {marcado:boolean, observacao:string}
+
+function renderAuditoria(){
+  const content = document.getElementById('content');
+  const actions = document.getElementById('topbar-actions');
+  actions.innerHTML = '';
+
+  const vencidos = equipamentos.filter(e=>auditoriaVencida(e.ultima_auditoria)).length;
+  const emDia = equipamentos.length - vencidos;
+
+  content.innerHTML = `
+    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat-card"><div class="stat-label">Total de equipamentos</div><div class="stat-value">${equipamentos.length}</div></div>
+      <div class="stat-card"><div class="stat-label">Em dia</div><div class="stat-value" style="color:var(--green)">${emDia}</div></div>
+      <div class="stat-card"><div class="stat-label">Vencidos (+1 ano ou nunca auditados)</div><div class="stat-value" style="color:var(--red)">${vencidos}</div></div>
+    </div>
+
+    <div class="card" style="padding:20px;margin-bottom:20px">
+      <div style="font-weight:700;font-family:'Sora',sans-serif;font-size:14px;margin-bottom:14px"><i class="ti ti-users" style="color:var(--purple);margin-right:6px"></i>Auditoria em lote por pessoa</div>
+      <div class="form-group">
+        <label>Pessoa</label>
+        <select id="lote-colab-select" onchange="carregarLoteAuditoria(this.value)">
+          <option value="">Selecione uma pessoa</option>
+          ${colaboradores.filter(c=>c.ativo && colaboradorNaEmpresa(c)).map(c=>`<option value="${c.id}">${c.nome}${c.setor?' — '+c.setor:''}</option>`).join('')}
+        </select>
+      </div>
+      <div id="lote-conteudo"></div>
+    </div>
+
+    <div style="font-weight:700;font-family:'Sora',sans-serif;font-size:14px;margin-bottom:10px">Todos os equipamentos</div>
+    <div class="filters">
+      <div class="search-box"><i class="ti ti-search"></i><input type="text" id="aud-busca" placeholder="Buscar por patrimônio ou colaborador..." oninput="filtrarAuditoria()"></div>
+      <select id="aud-filtro-status" onchange="filtrarAuditoria()">
+        <option value="">Todos</option>
+        <option value="vencido">Vencidos (+1 ano / nunca auditado)</option>
+        <option value="emdia">Em dia</option>
+      </select>
+      <div class="form-group" style="margin:0"><input type="date" id="aud-data-de" onchange="filtrarAuditoria()" title="Auditado a partir de"></div>
+      <div class="form-group" style="margin:0"><input type="date" id="aud-data-ate" onchange="filtrarAuditoria()" title="Auditado até"></div>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tipo</th><th>Patrimônio</th><th>Com quem / Onde</th><th>Última auditoria</th><th>Situação</th><th></th></tr></thead>
+          <tbody id="aud-tbody"></tbody>
+        </table>
+      </div>
+    </div>`;
+  filtrarAuditoria();
+}
+
+function filtrarAuditoria(){
+  const busca = (document.getElementById('aud-busca')?.value||'').toLowerCase();
+  const statusF = document.getElementById('aud-filtro-status')?.value||'';
+  const dataDe = document.getElementById('aud-data-de')?.value||'';
+  const dataAte = document.getElementById('aud-data-ate')?.value||'';
+
+  let lista = equipamentos.filter(e=>{
+    const matchBusca = !busca || e.patrimonio.toLowerCase().includes(busca) || (e.colaborador_atual?.nome||'').toLowerCase().includes(busca) || (e.local||'').toLowerCase().includes(busca);
+    const vencido = auditoriaVencida(e.ultima_auditoria);
+    const matchStatus = !statusF || (statusF==='vencido' ? vencido : !vencido);
+    let matchData = true;
+    if(dataDe) matchData = matchData && e.ultima_auditoria && e.ultima_auditoria.slice(0,10) >= dataDe;
+    if(dataAte) matchData = matchData && e.ultima_auditoria && e.ultima_auditoria.slice(0,10) <= dataAte;
+    return matchBusca && matchStatus && matchData;
+  });
+
+  const tbody = document.getElementById('aud-tbody');
+  if(lista.length===0){
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><i class="ti ti-clipboard-off"></i><p>Nenhum equipamento encontrado</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = lista.map(e=>`
+    <tr>
+      <td><i class="ti ${TIPO_ICON[e.tipo]||'ti-device-desktop'}" style="color:var(--gray-400);margin-right:6px"></i>${e.tipo}</td>
+      <td style="font-family:monospace">${e.patrimonio}</td>
+      <td>${quemEstaComEquipamento(e)}</td>
+      <td style="color:var(--gray-600)">${fmtAuditoria(e.ultima_auditoria)}</td>
+      <td>${badgeAuditoria(e.ultima_auditoria)}</td>
+      <td><button class="icon-btn" title="Auditoria" onclick="abrirAuditoria('${e.id}')"><i class="ti ti-clipboard-check"></i></button></td>
+    </tr>`).join('');
+}
+
+async function carregarLoteAuditoria(colabId){
+  loteColabSelecionado = colabId || null;
+  const wrap = document.getElementById('lote-conteudo');
+  if(!colabId){ wrap.innerHTML = ''; return; }
+
+  const itens = equipamentos.filter(e=>equipTemColaborador(e, colabId));
+  loteItensState = {};
+  itens.forEach(e=>{ loteItensState[e.id] = {marcado:true, observacao:''}; });
+
+  const duplicados = tiposDuplicados(itens);
+  const alertaDuplicado = duplicados.length ? `<div style="background:var(--red-light);color:var(--red);font-size:12px;font-weight:700;padding:8px 12px;border-radius:8px;margin-bottom:12px"><i class="ti ti-alert-triangle"></i> Essa pessoa tem tipos duplicados: ${duplicados.map(([t,q])=>`${t} (${q})`).join(', ')}</div>` : '';
+
+  if(itens.length===0){
+    wrap.innerHTML = `<div class="colab-equip-empty" style="margin-top:10px">Essa pessoa não tem equipamentos no momento</div>`;
+    return;
+  }
+
+  wrap.innerHTML = `
+    ${alertaDuplicado}
+    <div id="lote-itens-list" class="colab-equip-list" style="margin-bottom:14px">
+      ${itens.map(e=>renderLoteItemRow(e)).join('')}
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Data da auditoria</label><input type="date" id="lote-data" value="${new Date().toISOString().slice(0,10)}"></div>
+      <div class="form-group"><label>Responsável</label><input type="text" id="lote-responsavel" value="${(localStorage.getItem('mov_registrado_por')||'').replace(/"/g,'&quot;')}" placeholder="Quem está auditando"></div>
+    </div>
+    <button class="btn btn-primary" onclick="salvarLoteAuditoria()"><i class="ti ti-check"></i> Registrar auditoria dos itens marcados como OK</button>
+    <div class="form-hint">Itens marcados como OK são registrados com a observação "OK". Desmarque um item pra descrever uma situação diferente pra ele — ele também será registrado, com o texto que você escrever.</div>
+  `;
+}
+
+function renderLoteItemRow(e){
+  const st = loteItensState[e.id];
+  return `
+    <div class="colab-equip-item" style="align-items:flex-start;flex-direction:column;gap:6px">
+      <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600">
+          <input type="checkbox" style="width:auto" ${st.marcado?'checked':''} onchange="toggleLoteItem('${e.id}', this.checked)">
+          <i class="ti ${TIPO_ICON[e.tipo]||'ti-device-desktop'}"></i> ${e.tipo} · ${e.patrimonio}
+        </label>
+        ${st.marcado ? '<span class="badge badge-green">OK</span>' : '<span class="badge badge-amber">Situação diferente</span>'}
+      </div>
+      ${!st.marcado ? `<textarea style="width:100%" placeholder="Descreva a situação desse equipamento..." oninput="loteItensState['${e.id}'].observacao=this.value">${st.observacao||''}</textarea>` : ''}
+    </div>`;
+}
+
+function toggleLoteItem(equipId, marcado){
+  loteItensState[equipId].marcado = marcado;
+  const list = document.getElementById('lote-itens-list');
+  const itens = equipamentos.filter(e=>equipTemColaborador(e, loteColabSelecionado));
+  list.innerHTML = itens.map(e=>renderLoteItemRow(e)).join('');
+}
+
+async function salvarLoteAuditoria(){
+  const data = document.getElementById('lote-data').value;
+  const responsavel = document.getElementById('lote-responsavel').value.trim();
+  if(!data) return showToast('Informe a data da auditoria', 'error');
+  if(!responsavel) return showToast('Informe quem está auditando', 'error');
+  const entradas = Object.entries(loteItensState);
+  if(entradas.length===0) return showToast('Nenhum equipamento pra auditar', 'error');
+  try{
+    for(const [equipId, st] of entradas){
+      const observacao = st.marcado ? 'OK' : (st.observacao.trim() || 'Situação divergente registrada na auditoria em lote');
+      await api('auditorias', 'POST', {
+        equipamento_id: equipId,
+        data_auditoria: data,
+        responsavel,
+        observacao
+      });
+      await api('equipamentos?id=eq.'+equipId, 'PATCH', {ultima_auditoria: data});
+    }
+    localStorage.setItem('mov_registrado_por', responsavel);
+    showToast('Auditoria em lote registrada!');
+    await loadDados();
+    renderAuditoria();
+    document.getElementById('lote-colab-select').value = loteColabSelecionado || '';
+    await carregarLoteAuditoria(loteColabSelecionado);
   }catch(e){ showToast(e.message, 'error'); }
 }
 

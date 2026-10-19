@@ -2218,7 +2218,18 @@ async function deleteLocal(id){
 }
 
 // ── AUDITORIA ────────────────────────────────────────────────
-let loteColabSelecionado = null;
+let loteColabSelecionado = null; // valor do seletor: "colab:<id>" ou "local:<nome>"
+
+// itens do lote: pessoa (principal ou compartilhada) ou local (só os que estão fisicamente nele)
+function itensDoLote(sel){
+  if(!sel) return [];
+  if(sel.startsWith('local:')){
+    const nome = sel.slice(6);
+    return equipamentos.filter(e=>e.local === nome);
+  }
+  const colabId = sel.startsWith('colab:') ? sel.slice(6) : sel;
+  return equipamentos.filter(e=>equipTemColaborador(e, colabId));
+}
 let loteItensState = {}; // equipId -> {marcado:boolean, observacao:string}
 
 function renderAuditoria(){
@@ -2237,12 +2248,17 @@ function renderAuditoria(){
     </div>
 
     <div class="card" style="padding:20px;margin-bottom:20px">
-      <div style="font-weight:700;font-family:'Sora',sans-serif;font-size:14px;margin-bottom:14px"><i class="ti ti-users" style="color:var(--purple);margin-right:6px"></i>Auditoria em lote por pessoa</div>
+      <div style="font-weight:700;font-family:'Sora',sans-serif;font-size:14px;margin-bottom:14px"><i class="ti ti-users" style="color:var(--purple);margin-right:6px"></i>Auditoria em lote por pessoa ou local</div>
       <div class="form-group">
-        <label>Pessoa</label>
+        <label>Pessoa ou local</label>
         <select id="lote-colab-select" onchange="carregarLoteAuditoria(this.value)">
-          <option value="">Selecione uma pessoa</option>
-          ${colaboradores.filter(c=>c.ativo && colaboradorNaEmpresa(c)).map(c=>`<option value="${c.id}">${c.nome}${c.setor?' — '+c.setor:''}</option>`).join('')}
+          <option value="">Selecione uma pessoa ou um local</option>
+          <optgroup label="Pessoas">
+            ${colaboradores.filter(c=>c.ativo && colaboradorNaEmpresa(c)).map(c=>`<option value="colab:${c.id}">${c.nome}${c.setor?' — '+c.setor:''}</option>`).join('')}
+          </optgroup>
+          <optgroup label="Locais">
+            ${locaisConhecidos().map(l=>`<option value="local:${l.replace(/"/g,'&quot;')}">${l}</option>`).join('')}
+          </optgroup>
         </select>
       </div>
       <div id="lote-conteudo"></div>
@@ -2302,20 +2318,21 @@ function filtrarAuditoria(){
     </tr>`).join('');
 }
 
-async function carregarLoteAuditoria(colabId){
-  loteColabSelecionado = colabId || null;
+async function carregarLoteAuditoria(sel){
+  loteColabSelecionado = sel || null;
   const wrap = document.getElementById('lote-conteudo');
-  if(!colabId){ wrap.innerHTML = ''; return; }
+  if(!sel){ wrap.innerHTML = ''; return; }
+  const ehLocal = sel.startsWith('local:');
 
-  const itens = equipamentos.filter(e=>equipTemColaborador(e, colabId));
+  const itens = itensDoLote(sel);
   loteItensState = {};
   itens.forEach(e=>{ loteItensState[e.id] = {marcado:true, observacao:''}; });
 
   const duplicados = tiposDuplicados(itens);
-  const alertaDuplicado = duplicados.length ? `<div style="background:var(--red-light);color:var(--red);font-size:12px;font-weight:700;padding:8px 12px;border-radius:8px;margin-bottom:12px"><i class="ti ti-alert-triangle"></i> Essa pessoa tem tipos duplicados: ${duplicados.map(([t,q])=>`${t} (${q})`).join(', ')}</div>` : '';
+  const alertaDuplicado = duplicados.length ? `<div style="background:var(--red-light);color:var(--red);font-size:12px;font-weight:700;padding:8px 12px;border-radius:8px;margin-bottom:12px"><i class="ti ti-alert-triangle"></i> ${ehLocal ? 'Esse local tem' : 'Essa pessoa tem'} tipos duplicados: ${duplicados.map(([t,q])=>`${t} (${q})`).join(', ')}</div>` : '';
 
   if(itens.length===0){
-    wrap.innerHTML = `<div class="colab-equip-empty" style="margin-top:10px">Essa pessoa não tem equipamentos no momento</div>`;
+    wrap.innerHTML = `<div class="colab-equip-empty" style="margin-top:10px">${ehLocal ? 'Esse local não tem' : 'Essa pessoa não tem'} equipamentos no momento</div>`;
     return;
   }
 
@@ -2328,8 +2345,8 @@ async function carregarLoteAuditoria(colabId){
       <div class="form-group"><label>Data da auditoria</label><input type="date" id="lote-data" value="${dataHojeLocal()}"></div>
       <div class="form-group"><label>Responsável</label><input type="text" id="lote-responsavel" value="${(localStorage.getItem('mov_registrado_por')||'').replace(/"/g,'&quot;')}" placeholder="Quem está auditando"></div>
     </div>
-    <button class="btn btn-primary" onclick="salvarLoteAuditoria()"><i class="ti ti-check"></i> Registrar auditoria dos itens marcados como OK</button>
-    <div class="form-hint">Itens marcados como OK são registrados com a observação "OK". Desmarque um item pra descrever uma situação diferente pra ele — ele também será registrado, com o texto que você escrever.</div>
+    <button class="btn btn-primary" onclick="salvarLoteAuditoria()"><i class="ti ti-check"></i> Registrar auditoria do lote</button>
+    <div class="form-hint">Itens marcados como OK são registrados com a observação "OK" e passam a contar como auditados nessa data. Itens desmarcados ficam registrados no histórico como divergentes, com o texto que você escrever, mas mantêm a data da última auditoria anterior.</div>
   `;
 }
 
@@ -2351,7 +2368,7 @@ function renderLoteItemRow(e){
 function toggleLoteItem(equipId, marcado){
   loteItensState[equipId].marcado = marcado;
   const list = document.getElementById('lote-itens-list');
-  const itens = equipamentos.filter(e=>equipTemColaborador(e, loteColabSelecionado));
+  const itens = itensDoLote(loteColabSelecionado);
   list.innerHTML = itens.map(e=>renderLoteItemRow(e)).join('');
 }
 
@@ -2371,7 +2388,8 @@ async function salvarLoteAuditoria(){
         responsavel,
         observacao
       });
-      await api('equipamentos?id=eq.'+equipId, 'PATCH', {ultima_auditoria: data});
+      // só itens OK contam como auditados; desmarcados mantêm a última data anterior
+      if(st.marcado) await api('equipamentos?id=eq.'+equipId, 'PATCH', {ultima_auditoria: data});
     }
     localStorage.setItem('mov_registrado_por', responsavel);
     showToast('Auditoria em lote registrada!');
